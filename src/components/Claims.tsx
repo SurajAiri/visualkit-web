@@ -24,15 +24,16 @@ export default function Claims() {
   return (
     <div className="panel">
       <svg viewBox="0 0 620 170" width="100%" role="img" aria-label="Two claimed regions on one timeline">
+        <line className="ph" x1="0" x2="0" y1="8" y2="160" stroke="#fff" strokeWidth="2" opacity=".7" />
         <text x="0" y="14">project time</text>
-        {bar(0, 55, "#183632", 22)}
-        {bar(s.r1[0], s.r1[1], "#5fb8a8", 22)}
-        {bar(s.r2[0], s.r2[1], "#e9a07a", 22, i === 3 ? 1 : 0.85)}
-        <text x={s.r1[0] * K + 6} y="41" style={{ fill: "#0f2321" }}>r1</text>
-        <text x={s.r2[0] * K + 6} y="41" style={{ fill: "#0f2321" }}>r2</text>
+        {bar(0, 55, "#1a403b", 22)}
+        {bar(s.r1[0], s.r1[1], "#3ddcb0", 22)}
+        {bar(s.r2[0], s.r2[1], "#ff9a62", 22, i === 3 ? 1 : 0.85)}
+        <text x={s.r1[0] * K + 6} y="41" style={{ fill: "#0b1c1a" }}>r1</text>
+        <text x={s.r2[0] * K + 6} y="41" style={{ fill: "#0b1c1a" }}>r2</text>
         <text x="0" y="86">what r2 sees, local time</text>
-        {bar(0, 55, "#183632", 94)}
-        {s.see > 0 && bar(0, s.see, "#e9a07a", 94)}
+        {bar(0, 55, "#1a403b", 94)}
+        {s.see > 0 && bar(0, s.see, "#ff9a62", 94)}
         <text x="0" y="148">{s.see > 0 ? `local 0 to ${s.see} s` : "claim released"}</text>
       </svg>
       <div className="banner m">{s.cap}</div>

@@ -19,20 +19,21 @@ export default function Keyframes() {
     <div className="panel">
       <svg viewBox="0 0 640 190" width="100%" role="img" aria-label="Pre-keyframes follow the footage, post-keyframes stay on screen">
         <text x="0" y="14">clip, after the speed curve</text>
-        <rect x="0" y="22" width="640" height="38" rx="5" fill="#183632" />
-        <rect x={trim * K} y="26" width={Math.max(0, (len - trim) * K)} height="30" rx="4" fill="#2d5a52" />
+        <rect x="0" y="22" width="640" height="38" rx="5" fill="#1a403b" />
+        <rect x={trim * K} y="26" width={Math.max(0, (len - trim) * K)} height="30" rx="4" fill="#2c7a6c" />
         {SRC.map((t) => {
           const x = freeze ? 2 * K : (t / v) * K;
-          return x >= trim * K && x <= len * K ? <Dia key={t} x={x} y={41} c="#d45d9a" o={freeze ? 0.6 : 1} /> : null;
+          return x >= trim * K && x <= len * K ? <Dia key={t} x={x} y={41} c="#ff4f9a" o={freeze ? 0.6 : 1} /> : null;
         })}
         <text x="0" y="84">pre keys, pinned to footage</text>
         <text x="0" y="112">screen, what the viewer sees</text>
-        <rect x="0" y="120" width="640" height="38" rx="5" fill="#183632" />
+        <rect x="0" y="120" width="640" height="38" rx="5" fill="#1a403b" />
         {POST.map((a) => (
-          <Dia key={a} x={a * K} y={139} c="#3f6cf5" />
+          <Dia key={a} x={a * K} y={139} c="#4d7cff" />
         ))}
         <text x="0" y="178">post keys, stored at clip time + anim_offset</text>
-        <line x1={len * K} x2={len * K} y1="22" y2="158" stroke="#f2b705" strokeDasharray="3 3" />
+        <line className="ph" x1="0" x2="0" y1="8" y2="160" stroke="#fff" strokeWidth="2" opacity=".7" />
+        <line x1={len * K} x2={len * K} y1="22" y2="158" stroke="#ffc400" strokeDasharray="3 3" />
       </svg>
       <div className="ctrl">
         <span className="seg">

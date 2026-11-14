@@ -2,3 +2,5 @@ allowBuilds:
   core-js: true
   sharp: false
   unrs-resolver: false
+minimumReleaseAgeExclude:
+  - lucide-react@1.73.0

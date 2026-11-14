@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, LockKeyhole, RotateCcw } from "lucide-react";
-import { prefersReducedMotion, useInView } from "./useInView";
+import { useInView, useReducedMotion } from "./useInView";
 
 const LINES = [
   { n: "01", code: "clip.transform.scale = 1.08", ok: true },
@@ -12,18 +12,20 @@ const LINES = [
 export default function RunReport() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, 0.5);
-  const [shown, setShown] = useState(0); // 0..4: lines 1-3, then the verdict
+  const reduced = useReducedMotion();
+  const [step, setShown] = useState(0); // 0..4: lines 1-3, then the verdict
+  const shown = reduced ? 4 : step;
   const [run, setRun] = useState(1);
   const started = useRef(false);
 
   useEffect(() => {
-    if (prefersReducedMotion()) { setShown(4); return; }
+    if (reduced) return;
     if (!inView && !started.current) return;
     started.current = true;
     setShown(0);
     const timers = [1, 2, 3, 4].map((n) => setTimeout(() => setShown(n), 650 * n));
     return () => timers.forEach(clearTimeout);
-  }, [inView, run]);
+  }, [inView, run, reduced]);
 
   const done = shown >= 4;
 

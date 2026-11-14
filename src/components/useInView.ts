@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useState, useSyncExternalStore, type RefObject } from "react";
 
 export function useInView(ref: RefObject<Element | null>, threshold = 0.35) {
   const [inView, setInView] = useState(false);
@@ -18,4 +18,17 @@ export function useInView(ref: RefObject<Element | null>, threshold = 0.35) {
 
 export function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+const QUERY = "(prefers-reduced-motion: reduce)";
+export function useReducedMotion() {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(QUERY);
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(QUERY).matches,
+    () => false,
+  );
 }

@@ -1,7 +1,14 @@
 import { Workflow } from "lucide-react";
 import Reveal from "./Reveal";
 
-const LOOP = "CODE → TIMELINE → CONFIDENCE";
+const EVENTS = [
+  "claim R1 [12s, 24s) → maya-agent",
+  "run_0041 · 3 changes · committed",
+  "overlap on V1 · nothing written",
+  "release · ripple +2s",
+  "snapshot settled → ffmpeg",
+  "claim R2 [30s, 42s) → jules-agent",
+];
 
 export default function Manifesto() {
   return (
@@ -28,8 +35,8 @@ export default function Manifesto() {
         <div className="marquee-track">
           {[0, 1].map((n) => (
             <span className="marquee-set" key={n}>
-              {[0, 1, 2, 3].map((m) => (
-                <span key={m}>{LOOP}<i>✳</i></span>
+              {EVENTS.map((e) => (
+                <span key={e}>{e}<i /></span>
               ))}
             </span>
           ))}

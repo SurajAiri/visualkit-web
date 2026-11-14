@@ -2,7 +2,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowRight, AudioLines, Film, LockKeyhole, Pause, Play, ShieldCheck, Type } from "lucide-react";
 import Wave from "./Wave";
-import { prefersReducedMotion, useInView } from "./useInView";
+import { useInView, useReducedMotion } from "./useInView";
 
 const SCALE = 42; // seconds across the lane
 const pct = (s: number) => (s / SCALE) * 100 + "%";
@@ -64,11 +64,9 @@ export default function ClaimFigure() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, 0.4);
   const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    if (prefersReducedMotion()) setPaused(true);
-  }, []);
+  const reduced = useReducedMotion();
+  const [userPaused, setPaused] = useState(false);
+  const paused = userPaused || reduced;
 
   useEffect(() => {
     if (!inView || paused) return;
@@ -169,7 +167,7 @@ export default function ClaimFigure() {
 
       <figcaption id="claim-visual-caption">
         <span>{s.caption}</span>
-        <button className="life-toggle" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Play the claim walkthrough" : "Pause the claim walkthrough"}>
+        <button className="life-toggle" onClick={() => setPaused(!paused)} aria-label={paused ? "Play the claim walkthrough" : "Pause the claim walkthrough"}>
           {paused ? <Play size={11} aria-hidden /> : <Pause size={11} aria-hidden />}
         </button>
       </figcaption>

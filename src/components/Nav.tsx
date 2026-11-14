@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Logo from "./Logo";
 import { DOCS_URL } from "@/lib/site";
@@ -15,9 +15,14 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const [stuck, setStuck] = useState(false);
   const [active, setActive] = useState("");
+  const bar = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setStuck(window.scrollY > 12);
+    const onScroll = () => {
+      setStuck(window.scrollY > 12);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.current?.style.setProperty("--progress", String(max > 0 ? Math.min(1, window.scrollY / max) : 0));
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -43,7 +48,7 @@ export default function Nav() {
   }, [open]);
 
   return (
-    <header className={"site-nav" + (stuck ? " is-stuck" : "") + (open ? " is-open" : "")}>
+    <header ref={bar} className={"site-nav" + (stuck ? " is-stuck" : "") + (open ? " is-open" : "")}>
       <a className="skip-link" href="#main">Skip to content</a>
       <Logo />
       <button

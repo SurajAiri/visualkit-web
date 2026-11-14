@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { INSTALL, type InstallKey } from "@/lib/site";
 
-export default function InstallCommand() {
+export default function InstallCommand({ compact = false }: { compact?: boolean }) {
   const [k, setK] = useState<InstallKey>("pip");
   const [copied, setCopied] = useState(false);
 
@@ -18,14 +18,14 @@ export default function InstallCommand() {
   }
 
   return (
-    <div className="install">
-      <div className="install-tabs" role="tablist" aria-label="Package manager">
+    <div className={"install" + (compact ? " is-compact" : "")}>
+      {!compact && <div className="install-tabs" role="tablist" aria-label="Package manager">
         {(Object.keys(INSTALL) as InstallKey[]).map((key) => (
           <button key={key} role="tab" aria-selected={k === key} onClick={() => setK(key)}>
             {key}
           </button>
         ))}
-      </div>
+      </div>}
       <div className="install-line">
         <span className="install-prompt" aria-hidden="true">$</span>
         <code>{INSTALL[k]}</code>

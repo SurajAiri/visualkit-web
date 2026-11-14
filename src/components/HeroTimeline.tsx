@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { AudioLines, LockKeyhole, Pause, Play, ShieldCheck } from "lucide-react";
+import { AudioLines, LockKeyhole, Pause, Play } from "lucide-react";
 import Wave from "./Wave";
-import { prefersReducedMotion } from "./useInView";
+import { prefersReducedMotion, useReducedMotion } from "./useInView";
 
 // One scale for everything on this timeline: seconds -> percent of lane width.
 const PCT = 1.8; // 50s lands at 90%
@@ -10,7 +10,7 @@ const FPS = 24;
 const LOOP = 52; // seconds shown before the playhead wraps
 const REAL_SECONDS = 26; // playhead runs at 2x so the loop takes 26s of wall time
 const at = (s: number) => s * PCT + "%";
-const span = (a: number, b: number) => ({ left: at(a), width: (b - a) * PCT + "%" });
+const span = (a: number, b: number, i = 0) => ({ left: at(a), width: (b - a) * PCT + "%", ["--i" as string]: i });
 
 const tc = (t: number) => {
   const f = Math.floor((t % 1) * FPS);
@@ -20,6 +20,14 @@ const tc = (t: number) => {
   return `${p(m)}:${p(s)}:${p(f)}`;
 };
 
+const LOG = [
+  { ok: true, text: "run_0041 committed · 3 changes" },
+  { ok: true, text: "claim R2 [30s, 42s) granted → maya-agent" },
+  { ok: false, text: "run_0042 rejected · overlap on V1, nothing written" },
+  { ok: true, text: "claim R1 released · ripple +2s" },
+  { ok: true, text: "snapshot settled → ffmpeg" },
+];
+
 const JULES = [12, 24] as const;
 const MAYA = [30, 42] as const;
 
@@ -27,12 +35,11 @@ export default function HeroTimeline() {
   const root = useRef<HTMLDivElement>(null);
   const head = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
-  const [playing, setPlaying] = useState(true);
+  const reduced = useReducedMotion();
+  const [userPlaying, setPlaying] = useState(true);
+  const playing = userPlaying && !reduced;
+  const [logI, setLogI] = useState(0);
   const t = useRef(16.33);
-
-  useEffect(() => {
-    if (prefersReducedMotion()) setPlaying(false);
-  }, []);
 
   const paint = (time: number) => {
     head.current?.style.setProperty("--p", String((time * PCT) / 100));
@@ -53,6 +60,12 @@ export default function HeroTimeline() {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
+  }, [playing]);
+
+  useEffect(() => {
+    if (!playing || prefersReducedMotion()) return;
+    const id = setInterval(() => setLogI((n) => (n + 1) % LOG.length), 2800);
+    return () => clearInterval(id);
   }, [playing]);
 
   // Gentle tilt that follows the pointer. Off for reduced motion and touch.
@@ -80,12 +93,7 @@ export default function HeroTimeline() {
   }, []);
 
   return (
-    <div className="hero-visual" ref={root}>
-      <div className="hero-orbit orbit-one" aria-hidden="true" />
-      <div className="hero-orbit orbit-two" aria-hidden="true" />
-      <div className="orbit-label label-agent" aria-hidden="true">AGENTS <span>↗</span></div>
-      <div className="orbit-label label-render" aria-hidden="true">RENDERERS <span>↘</span></div>
-
+    <div className={"hero-visual" + (playing ? "" : " is-paused")} ref={root}>
       <div className="timeline-window" role="img" aria-label="A video timeline with two agents each holding an exclusive claimed time range">
         <div className="window-top">
           <div className="window-dots" aria-hidden="true"><i /><i /><i /></div>
@@ -110,31 +118,31 @@ export default function HeroTimeline() {
             <div className="track-row">
               <span className="track-name">V3</span>
               <div className="track-lane">
-                <div className="clip clip-violet" style={span(2, 10)}><span>opening-title</span><i /></div>
-                <div className="clip clip-purple" style={span(14, 23)}><span>lower-third</span><i /></div>
-                <div className="clip clip-violet" style={span(44, 52)}><span>end-card</span><i /></div>
+                <div className="clip clip-violet" style={span(2, 10, 0)}><span>opening-title</span><i /></div>
+                <div className="clip clip-purple" style={span(14, 23, 2)}><span>lower-third</span><i /></div>
+                <div className="clip clip-violet" style={span(44, 52, 7)}><span>end-card</span><i /></div>
               </div>
             </div>
             <div className="track-row">
               <span className="track-name">V2</span>
               <div className="track-lane">
-                <div className="clip clip-pink" style={span(13, 22)}><span>b-roll_01</span><i /></div>
-                <div className="clip clip-pink" style={span(31, 41)}><span>cutaway_04</span><i /></div>
+                <div className="clip clip-pink" style={span(13, 22, 3)}><span>b-roll_01</span><i /></div>
+                <div className="clip clip-pink" style={span(31, 41, 6)}><span>cutaway_04</span><i /></div>
               </div>
             </div>
             <div className="track-row">
               <span className="track-name">V1</span>
               <div className="track-lane">
-                <div className="clip clip-orange" style={span(2, 11)}><span>cam_A.mov</span><Wave count={16} seed={2} /></div>
-                <div className="clip clip-orange" style={span(12.6, 23.4)}><span>cam_B.mov</span><Wave count={18} seed={5} /></div>
-                <div className="clip clip-orange" style={span(31, 41)}><span>reaction.mov</span><Wave count={14} seed={9} /></div>
+                <div className="clip clip-orange" style={span(2, 11, 1)}><span>cam_A.mov</span><Wave count={16} seed={2} /></div>
+                <div className="clip clip-orange" style={span(12.6, 23.4, 4)}><span>cam_B.mov</span><Wave count={18} seed={5} /></div>
+                <div className="clip clip-orange" style={span(31, 41, 5)}><span>reaction.mov</span><Wave count={14} seed={9} /></div>
               </div>
             </div>
             <div className="track-row">
               <span className="track-name">A1</span>
               <div className="track-lane">
                 {[[2, 11.6], [12.4, 23.6], [24.4, 29.6], [30.4, 41.6], [42.4, 52]].map(([a, b], i) => (
-                  <div className="clip clip-audio" style={span(a, b)} key={i}>
+                  <div className="clip clip-audio" style={span(a, b, 8 + i)} key={i}>
                     {i === 0 && <AudioLines size={13} aria-hidden />}
                     <Wave count={Math.round((b - a) * 2.2)} seed={i * 4 + 1} className="audio-wave" />
                   </div>
@@ -145,15 +153,23 @@ export default function HeroTimeline() {
             <div className="lane-layer" aria-hidden="true">
               <div className="claim-band band-jules" style={span(...JULES)} />
               <div className="claim-band band-maya" style={span(...MAYA)} />
+              <div className="agent-cursor cursor-jules"><svg width="11" height="13" viewBox="0 0 11 13"><path d="M1 1 L1 11 L4 8 L6.4 12.4 L8 11.6 L5.7 7.3 L9.6 7 Z" fill="currentColor" stroke="#101017" strokeWidth=".8" strokeLinejoin="round" /></svg><span>jules-agent</span></div>
+              <div className="agent-cursor cursor-maya"><svg width="11" height="13" viewBox="0 0 11 13"><path d="M1 1 L1 11 L4 8 L6.4 12.4 L8 11.6 L5.7 7.3 L9.6 7 Z" fill="currentColor" stroke="#101017" strokeWidth=".8" strokeLinejoin="round" /></svg><span>maya-agent</span></div>
               <div className="playhead"><span ref={label}>00:16:08</span></div>
             </div>
+          </div>
+
+          <div className="tl-log" aria-hidden="true">
+            <span className="log-prompt">$</span>
+            <span key={logI} className={"log-line " + (LOG[logI].ok ? "is-ok" : "is-bad")}>
+              <i />{LOG[logI].text}
+            </span>
           </div>
 
           <div className="timeline-footer">
             <span><i className="legend-violet" />CODED CLIP</span>
             <span><i className="legend-pink" />MEDIA</span>
             <span><i className="legend-claim" />CLAIMED REGION</span>
-            <span className="footer-safe"><ShieldCheck size={13} aria-hidden /> Changes validated · all clear</span>
           </div>
         </div>
 
@@ -169,16 +185,14 @@ export default function HeroTimeline() {
         </div>
       </div>
 
-      <div className="hero-caption">
-        <span className="caption-pip" /> A shared timeline, in motion
-        <button
-          className="hero-toggle"
-          onClick={() => setPlaying((p) => !p)}
-          aria-label={playing ? "Pause timeline animation" : "Play timeline animation"}
-        >
-          {playing ? <Pause size={11} aria-hidden /> : <Play size={11} aria-hidden />}
-        </button>
-      </div>
+      <button
+        className="hero-toggle"
+        onClick={() => setPlaying(!playing)}
+        aria-label={playing ? "Pause timeline animation" : "Play timeline animation"}
+      >
+        {playing ? <Pause size={11} aria-hidden /> : <Play size={11} aria-hidden />}
+        <span>{playing ? "pause" : "play"}</span>
+      </button>
     </div>
   );
 }

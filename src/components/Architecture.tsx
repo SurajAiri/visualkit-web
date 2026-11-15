@@ -14,13 +14,13 @@ export default function Architecture() {
     <section className="architecture-section" id="architecture">
       <Reveal className="section-head">
         <div>
-          <span className="section-kicker">02 — THE BRIDGE</span>
+          <span className="section-kicker">02 / THE BRIDGE</span>
           <h2>
             Your agent’s intent.<br />
             <span>Every tool’s language.</span>
           </h2>
         </div>
-        <p>One backend-neutral project. A clear path from script to screen—and a snapshot each renderer can understand.</p>
+        <p>One backend-neutral project. A clear path from script to screen, and a snapshot each renderer can understand.</p>
       </Reveal>
 
       <Reveal className="architecture-flow" delay={80}>
@@ -28,7 +28,6 @@ export default function Architecture() {
           <div className="arch-node-icon"><CodeXml size={24} aria-hidden /></div>
           <span>AGENT / SCRIPT / GUI</span>
           <small>describes edits in batches</small>
-          <div className="node-decoration" aria-hidden="true"><i /><i /><i /></div>
         </div>
 
         <div className="arch-connector" aria-hidden="true">
@@ -59,7 +58,7 @@ export default function Architecture() {
           </div>
           <span>RENDER / FINISH</span>
           <small>FFmpeg · Resolve · OTIO</small>
-          <div className="render-bars" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+          <div className="render-progress" aria-hidden="true"><i /></div>
         </div>
       </Reveal>
 

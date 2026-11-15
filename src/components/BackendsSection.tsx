@@ -6,7 +6,7 @@ export default function BackendsSection() {
   return (
     <section className="backend-section" id="backends">
       <Reveal className="backend-copy">
-        <span className="section-kicker">06 — YOUR TOOLCHAIN, YOUR CALL</span>
+        <span className="section-kicker">06 / YOUR TOOLCHAIN, YOUR CALL</span>
         <h2>
           One project.<br />
           <span>Room to render.</span>

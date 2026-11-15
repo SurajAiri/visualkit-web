@@ -37,7 +37,7 @@ export default function Features() {
     <section className="feature-section" id="features">
       <Reveal className="feature-heading">
         <div>
-          <span className="section-kicker">03 — MADE FOR MOTION</span>
+          <span className="section-kicker">03 / MADE FOR MOTION</span>
           <h2>
             The hard parts,<br />
             <span>made legible.</span>

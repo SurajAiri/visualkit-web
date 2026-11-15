@@ -1,11 +1,10 @@
-import { LockKeyhole, RefreshCw, ShieldCheck } from "lucide-react";
 import ClaimFigure from "./ClaimFigure";
 import Reveal from "./Reveal";
 
 const RULES = [
-  { icon: LockKeyhole, title: "One exclusive window", body: "The region follows its owner, even as the surrounding edit moves." },
-  { icon: ShieldCheck, title: "Conflict-aware by design", body: "Clips and groups stay atomic unless a split is explicitly requested." },
-  { icon: RefreshCw, title: "Release with integrity", body: "Validate, commit atomically, then ripple for any duration change." },
+  { title: "One exclusive window", body: "The region follows its owner, even as the surrounding edit moves." },
+  { title: "Conflict-aware by design", body: "Clips and groups stay atomic unless a split is explicitly requested." },
+  { title: "Release with integrity", body: "Validate, commit atomically, then ripple for any duration change." },
 ];
 
 export default function ClaimSection() {
@@ -13,7 +12,7 @@ export default function ClaimSection() {
     <section className="claim-section" id="claimed-region">
       <div className="claim-section-inner">
         <Reveal className="claim-section-copy">
-          <span className="section-kicker">04 — SAFE PARALLEL WORK</span>
+          <span className="section-kicker">04 / SAFE PARALLEL WORK</span>
           <h2>
             Claim the time.<br />
             <span>Not the whole timeline.</span>
@@ -23,16 +22,16 @@ export default function ClaimSection() {
             write there; everyone else reads the same immutable project snapshot. No dirty reads, no surprise edits.
           </p>
           <div className="claim-rules">
-            {RULES.map(({ icon: Icon, title, body }) => (
+            {RULES.map(({ title, body }, i) => (
               <div key={title}>
-                <span className="claim-rule-icon"><Icon size={16} aria-hidden /></span>
+                <span className="claim-rule-n">{`0${i + 1}`}</span>
                 <span><strong>{title}</strong><small>{body}</small></span>
               </div>
             ))}
           </div>
           <div className="claim-resolution">
             <span>WHEN A CLAIM OVERLAPS</span>
-            <p>Expand connected clips or groups when allowed. Otherwise reject with a precise suggested range—or split only when requested.</p>
+            <p>Expand connected clips or groups when allowed. Otherwise reject with a precise suggested range, or split only when requested.</p>
           </div>
         </Reveal>
         <ClaimFigure />

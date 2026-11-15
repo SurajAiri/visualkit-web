@@ -14,7 +14,7 @@ export default function Manifesto() {
   return (
     <section className="manifesto" id="how-it-works">
       <Reveal className="manifesto-inner">
-        <span className="section-kicker">01 — THE IDEA</span>
+        <span className="section-kicker">01 / THE IDEA</span>
         <div>
           <h2>
             Not another editor.<br />
@@ -22,7 +22,7 @@ export default function Manifesto() {
           </h2>
           <p>
             VisualKit sits between AI agents and the tools that finish video. It gives every edit a shared, validated
-            structure—then hands a clean snapshot to the renderer you already use.
+            structure, then hands a clean snapshot to the renderer you already use.
           </p>
         </div>
         <div className="manifesto-aside">

@@ -4,7 +4,7 @@ import "@fontsource-variable/schibsted-grotesk";
 import "@fontsource-variable/martian-mono";
 import "./globals.css";
 
-const TITLE = "VisualKit — The agent-first video editing library";
+const TITLE = "VisualKit: The agent-first video editing library";
 
 export const metadata: Metadata = {
   title: TITLE,

@@ -13,7 +13,7 @@ const stageAt = (t: number) => Math.max(0, STAGES.findIndex((s) => t >= s.a && t
 
 /* The stage is drawn at a fixed logical size and scaled to fit, so it looks identical at any width.
    Phones get a narrower logical canvas so text stays readable instead of shrinking to nothing. */
-const size = (w: number) => (w < 720 ? { w: 480, h: 470 } : { w: 1000, h: 400 });
+const size = (w: number) => (w < 720 ? { w: 480, h: 480 } : { w: 1000, h: 424 });
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);

@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Check, Scissors } from "lucide-react";
 
 /* The demo video is 15 s, so the timeline is 15 s. Retime the stages here to match the final cut. */
@@ -20,6 +20,7 @@ export const STAGES = [
 type Vars = Record<string, string | number>;
 const K = (at: number, d = 0.3, o: Vars = {}) => ({ "--at": at, "--d": d, ...o }) as CSSProperties;
 const P = (s: number) => (s / DUR) * 100 + "%";
+const Y = (lane: number) => `calc((var(--lh) + 6px) * ${lane})`; // top of a timeline lane
 
 /* ── python highlighter ── */
 const TOK = /("[^"]*")|(\b\d+(?:\.\d+)?\b)|\b([A-Z]\w*)\b|\.(\w+)(?=\()/g;
@@ -40,7 +41,8 @@ const Call = ({ at, until, children }: { at: number; until?: number; children: s
   <div className="call k" style={K(at, 0.2, until ? { "--until": until } : {})}><i>›</i>{hl(children)}</div>
 );
 
-/* ── the one track-item look, used by every scene ── */
+/* ── the one track-item look: icon · name · duration header, filmstrip or waveform body ──
+   An effect replaces the name in the header (✦ Name) and the clip name moves to the middle. */
 const wave = (seed: number, n = 90) => {
   let d = "";
   for (let i = 0; i < n; i++) {
@@ -49,25 +51,74 @@ const wave = (seed: number, n = 90) => {
   }
   return d;
 };
-type ClipProps = { n: string; tone: string; a: number; b: number; au?: boolean; kd?: number[]; at?: number; st?: CSSProperties; cls?: string; children?: ReactNode };
-function Clip({ n, tone, a, b, au, kd, at, st, cls = "", children }: ClipProps) {
+type Kind = "v" | "t" | "a";
+type C = { id: string; n: string; tone: string; a: number; b: number; k?: Kind; kd?: number[] };
+type ClipProps = Omit<C, "id"> & { id?: string; at?: number; st?: CSSProperties; cls?: string; fx?: string; fxAt?: number; dur?: string; children?: ReactNode };
+function Clip({ n, tone, a, b, k = "v", kd, at, st, cls = "", fx, fxAt = 0, dur, children }: ClipProps) {
   return (
-    <div className={`cl t-${tone}${au ? " au" : ""}${at != null ? " k" : ""} ${cls}`}
-      style={{ left: P(a), width: P(b - a), ...(at != null ? K(at) : {}), ...st }}>
+    <div className={`cl t-${tone} kind-${k}${at != null ? " k" : ""} ${cls}`} style={{ left: P(a), width: P(b - a), ...(at != null ? K(at) : {}), ...st }}>
       <div className="in">
-        {!au && <header><span>{n}</span><em>{(b - a).toFixed(1)}s</em></header>}
-        {au ? (
-          <svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden><path d={wave(a * 3 + b)} vectorEffect="non-scaling-stroke" /></svg>
-        ) : <i className="fl" />}
-        {au && <span className="auname">{n}</span>}
-        {kd && <><u className="kline" />{kd.map((x) => <u className="kd" key={x} style={{ left: x + "%" }} />)}</>}
+        <header>
+          <i className={`ic ic-${k}`} />
+          <span className={`hn${fx ? " k" : ""}`} style={fx ? K(0, 0.01, { "--until": fxAt }) : undefined}>{n}</span>
+          {fx && <span className="hf k" style={K(fxAt, 0.25, { "--kf": "k-fade" })}>✦ {fx}</span>}
+          <em>{dur ?? (b - a).toFixed(1) + "s"}</em>
+        </header>
+        {k === "a"
+          ? <svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden><path d={wave(a * 3 + b)} vectorEffect="non-scaling-stroke" /></svg>
+          : <i className="fl" />}
+        {fx && <span className="mid k" style={K(fxAt, 0.25, { "--kf": "k-fade" })}>{n}</span>}
+        {kd && kd.length > 0 && <><u className="kline" />{kd.map((x) => <u className="kd" key={x} style={{ left: x + "%" }} />)}</>}
       </div>
       {children}
     </div>
   );
 }
-const Tag = ({ at, children, st }: { at: number; children: string; st?: CSSProperties }) => <em className="tag k" style={{ ...K(at, 0.25, { "--kf": "k-pop" }), ...st }}>{children}</em>;
 const Scene = ({ a, children }: { a: number; children: ReactNode }) => <div className="sc k" style={K(a, 0.25, { "--kf": "k-fade" })}>{children}</div>;
+
+/* ── the shared project every timeline scene works on (8 tracks, clips kept inside the 3 acts) ── */
+const c = (id: string, n: string, tone: string, a: number, b: number, k?: Kind, kd?: number[]): C => ({ id, n, tone, a, b, k, kd });
+const PROJ: { n: string; c: C[] }[] = [
+  { n: "V5", c: [c("lens", "lens_dirt", "teal", 0.5, 2.4), c("speed", "speed_ramp", "lime", 6.0, 8.0, "v", [30, 62]), c("vhs", "vhs_overlay", "pink", 11.0, 13.4)] },
+  { n: "V4", c: [c("title", "title_card", "violet", 0.4, 3.6, "t"), c("callout", "callout_arrow", "orange", 5.6, 7.2, "t"), c("lower", "lower_third", "pink", 10.3, 13.6, "t"), c("endc", "end_card", "violet", 13.9, 14.8, "t")] },
+  { n: "V3", c: [c("light", "light_leak", "orange", 0.3, 1.9), c("glitch", "glitch_pack", "blue", 2.3, 3.6), c("prism", "prism_flare", "teal", 4.0, 4.9), c("grain", "film_grain", "orange", 6.2, 8.4), c("key", "green_key", "teal", 10.4, 13.2, "v", [25, 55, 82])] },
+  { n: "V2", c: [c("city", "broll_16_city", "lime", 1.0, 4.8, "v", [20, 46, 72]), c("skate", "skate_ramp", "violet", 5.6, 9.4, "v", [30, 66]), c("drone", "drone_08", "blue", 10.4, 12.4)] },
+  { n: "V1", c: [c("b13", "broll_13", "blue", 0.3, 4.8, "v", [18, 46, 80]), c("b16", "broll_16", "orange", 5.3, 9.7), c("b7", "broll_7", "blue", 10.1, 14.6, "v", [35, 70])] },
+  { n: "A1", c: [c("vo1", "vo_intro_t3", "teal", 0.3, 2.6, "a"), c("vo2", "vo_01", "teal", 3.0, 4.8, "a"), c("vo3", "vo_02_alt", "teal", 5.5, 7.6, "a"), c("vo4", "vo_03", "teal", 8.0, 9.6, "a"), c("vo5", "vo_outro", "teal", 10.2, 14.4, "a")] },
+  { n: "A2", c: [c("bgm1", "bgm_flute_drop", "sage", 0.3, 4.8, "a"), c("bgm2", "bgm_flute_drop", "sage", 5.3, 9.7, "a"), c("bgm3", "bgm_flute_drop", "sage", 10.1, 14.8, "a")] },
+  { n: "A3", c: [c("s1", "whoosh_01", "violet", 1.4, 2.3, "a"), c("s2", "hit_03", "orange", 3.7, 4.3, "a"), c("s3", "riser", "pink", 6.2, 7.0, "a"), c("s4", "pop", "lime", 8.6, 9.1, "a"), c("s5", "whoosh_02", "violet", 10.6, 11.6, "a"), c("s6", "impact", "orange", 12.6, 13.3, "a"), c("s7", "room_tone", "blue", 13.6, 14.8, "a")] },
+];
+type Over = Record<string, (c: C, at: number) => ReactNode>;
+function Project({ a, x = {}, fx = {}, top, children }: { a: number; x?: Over; fx?: Record<string, [string, number]>; top?: ReactNode; children?: ReactNode }) {
+  return (
+    <>
+      {top}
+      {PROJ.map((r, ri) => (
+        <div className="ln" key={r.n}>
+          {r.c.map((cl, ci) => {
+            const at = a + ri * 0.05 + ci * 0.04, f = fx[cl.id];
+            return <Fragment key={cl.id}>{x[cl.id] ? x[cl.id](cl, at) : <Clip {...cl} at={at} fx={f?.[0]} fxAt={f?.[1]} />}</Fragment>;
+          })}
+        </div>
+      ))}
+      {children}
+    </>
+  );
+}
+/* split a clip in two at second `s` (time `ts`), and trim a clip's tail to `nb` (time `tt`) */
+const Split = (cl: C, at: number, s: number, ts: number) => (
+  <>
+    <Clip {...cl} at={at} cls="once" st={{ "--until": ts } as CSSProperties} />
+    <Clip {...cl} b={s} cls="k" st={K(ts, 0.01)} />
+    <Clip {...cl} a={s} cls="k" st={K(ts, 0.01)}><i className="nudge k" style={K(ts + 0.04, 0.3, { "--kf": "k-gap" })} /></Clip>
+  </>
+);
+const Trim = (cl: C, at: number, nb: number, tt: number) => (
+  <div className="wrap k" style={K(at, 0.3)}>
+    <Clip {...cl} b={nb} cls="k" st={K(tt, 0.3, { "--kf": "k-w", "--w0": P(cl.b - cl.a), "--w1": P(nb - cl.a) })} />
+    <i className="hatch k" style={{ left: P(nb), width: P(cl.b - nb), ...K(tt, 0.4, { "--kf": "k-hatch" }) }} />
+  </div>
+);
 
 /* 1 ─ script → what it builds ─────────────────────────────────────────── */
 const CODE = [
@@ -91,6 +142,7 @@ function Script() {
         <div className="cd-main">
           <div className="cd-bar"><i /><i /><i /><span>build_hero_demo.py</span></div>
           {CODE.map((l, i) => <div className="ln-c k" key={i} style={K(0.1 + i * 0.22, 0.25)}><u>{i + 1}</u><span>{hl(l)}</span></div>)}
+          <div className="term k" style={K(1.9, 0.25)}><div><i>$</i> python build_hero_demo.py</div><div><b className="ok">✓</b> 3 changes committed · rev 7f3a</div></div>
         </div>
         <div className="cd-side">
           <div className="cd-agent"><i className="live" />agent <b>claude-code</b><small>running</small></div>
@@ -99,10 +151,10 @@ function Script() {
               <div className="cd-step k" key={f} style={K(at, 0.25)}><span className="ck k" style={K(at + 0.12, 0.2, { "--kf": "k-pop" })}><Check size={11} strokeWidth={3} /></span><b>{f}</b><small>{s}</small></div>
             ))}
           </div>
+          <div className="cd-cap">V1_Base_Plates</div>
           <div className="ln cd-lane">
-            <Clip n="broll_13" tone="blue" a={0} b={9} at={0.9} kd={[70]} st={{ left: 0, "--kf": "k-w", "--w0": "0%", "--w1": "64%", "--d": 0.7 } as CSSProperties}>
-              <Tag at={1.3} st={{ right: 4 }}>GaussianBlur</Tag>
-            </Clip>
+            <Clip n="broll_13" tone="blue" a={0} b={4.8} at={0.9} kd={[70]} fx="GaussianBlurEffect" fxAt={1.3}
+              st={{ left: 0, "--kf": "k-w", "--w0": "0%", "--w1": "72%", "--d": 0.7 } as CSSProperties} />
           </div>
         </div>
       </div>
@@ -115,29 +167,14 @@ function Cut() {
   const a = STAGES[1].a;
   return (
     <Scene a={a}>
-      <div className="lns" style={{ "--lh": "56px" } as CSSProperties}>
-        <div className="ln">
-          <Clip n="title_card" tone="violet" a={1} b={4.2} at={a + 0.05} />
-          <Clip n="lower_third" tone="pink" a={9} b={12.4} at={a + 0.12} />
-        </div>
-        <div className="ln">
-          <Clip n="broll_13" tone="blue" a={0.4} b={4.6} at={a + 0.1} kd={[22, 61]} />
-          <Clip n="broll_16" tone="orange" a={4.9} b={10} cls="once" st={{ "--until": a + 0.62 } as CSSProperties} at={a + 0.2} />
-          <Clip n="broll_16" tone="orange" a={4.9} b={7.4} cls="half k" st={K(a + 0.62, 0.01)} />
-          <Clip n="broll_16" tone="orange" a={7.4} b={10} cls="half k" st={{ ...K(a + 0.62, 0.01), "--nx": "0%" } as CSSProperties}>
-            <i className="nudge" style={K(a + 0.66, 0.3, { "--kf": "k-gap" })} />
-          </Clip>
-          <div className="wrap k" style={K(a + 0.3, 0.3)}>
-            <Clip n="broll_7" tone="blue" a={10.2} b={13.2} cls="k" st={K(a + 1.3, 0.3, { "--kf": "k-w", "--w0": P(4.4), "--w1": P(3) })} />
-            <i className="hatch k" style={{ left: P(13.2), width: P(1.4), ...K(a + 1.3, 0.4, { "--kf": "k-hatch" }) }} />
+      <div className="lns">
+        <Project a={a} x={{ b16: (cl, at) => Split(cl, at, 7.5, a + 0.62), b7: (cl, at) => Trim(cl, at, 13.2, a + 1.3) }}>
+          <div className="blade-pos k" style={K(a + 1.1, 0.5, { "--kf": "k-mv", "--x0": P(7.5), "--x1": P(13.2) })}>
+            <div className="blade k" style={K(a + 0.35, 0.25)}><span><Scissors size={12} /></span></div>
           </div>
-        </div>
-        <div className="ln"><Clip n="bgm_flute_drop" tone="sage" a={0.4} b={14.6} au at={a + 0.18} /></div>
-        <div className="blade-pos k" style={K(a + 1.1, 0.5, { "--kf": "k-mv", "--x0": P(7.4), "--x1": P(13.2) })}>
-          <div className="blade k" style={K(a + 0.35, 0.25)}><span><Scissors size={12} /></span></div>
-        </div>
+        </Project>
       </div>
-      <Call at={a + 0.5} until={a + 1.2}>clip.split_at(ClipTime(2.5))</Call>
+      <Call at={a + 0.5} until={a + 1.2}>clip.split_at(ClipTime(2.2))</Call>
       <Call at={a + 1.2}>clip.trim_tail(TimelineTime(13.2))</Call>
     </Scene>
   );
@@ -165,13 +202,13 @@ function Keys() {
   return (
     <Scene a={a}>
       <div className="kf-wrap">
-        <div className="kf-clip"><Clip n="broll_13.mp4 · V1" tone="blue" a={0} b={DUR} st={{ left: 0, width: "100%" }} /></div>
+        <div className="kf-clip"><Clip n="broll_13.mp4 · V1 · 0.0s → 4.8s" tone="blue" a={0} b={DUR} dur="4.8s" kd={[]} st={{ left: 0, width: "100%" }} /></div>
         {LANES.map((l, i) => {
           const last = l.k[l.k.length - 1], d = curve(l.k) + ` L${last[0] * 10 + 20} ${last[1]}`;
           return (
             <div className={`kf-row t-${l.tone} k`} key={l.n} style={K(a + 0.1 + i * 0.09, 0.3)}>
-              {["gr", "on"].map((c) => (
-                <svg key={c} className={c} viewBox="0 0 150 30" preserveAspectRatio="none" aria-hidden><path d={d} /></svg>
+              {["gr", "on"].map((cn) => (
+                <svg key={cn} className={cn} viewBox="0 0 150 30" preserveAspectRatio="none" aria-hidden><path d={d} /></svg>
               ))}
               {l.k.map(([t, y]) => <i key={t} className="kdia k" style={{ left: P(t), top: (y / 30) * 100 + "%", ...K(t, 0.01, { "--kf": "k-fill" }) }} />)}
               <div className="kf-lab"><span>{l.n}</span>{l.layer && <em className={l.layer}>{l.layer}</em>}<b>{l.v}</b></div>
@@ -185,13 +222,14 @@ function Keys() {
   );
 }
 
-/* 4 ─ audio: one channel strip. clip → shaped spectrum → band nodes → filters ─── */
+/* 4 ─ audio: clip → frequency-response curve (continuous) → filters ──────── */
 const BANDS: [string, number][] = [["32", 0.3], ["64", 0.45], ["125", 0.2], ["250", -0.45], ["500", -0.35], ["1k", 0.05], ["2k", 0.4], ["4k", 0.6], ["8k", 0.65], ["16k", 0.55]];
-const gainAt = (x: number) => {
-  const f = x * (BANDS.length - 1), i = Math.min(BANDS.length - 2, Math.floor(f)), u = (1 - Math.cos((f - i) * Math.PI)) / 2;
-  return BANDS[i][1] * (1 - u) + BANDS[i + 1][1] * u;
-};
-const hOf = (g: number) => 46 + g * 38;
+const PTS = BANDS.map(([, g], i) => [3 + (i * 94) / 9, 50 - g * 55] as [number, number]); // x %, y % (50 = 0 dB)
+const EQD = ([[0, PTS[0][1]], ...PTS, [100, PTS[PTS.length - 1][1]]] as [number, number][]).reduce((d, [x, y], i, arr) => {
+  if (!i) return `M${x} ${y}`;
+  const [px, py] = arr[i - 1], m = (px + x) / 2;
+  return d + ` C${m} ${py} ${m} ${y} ${x} ${y}`;
+}, "");
 function Knob({ label, val, at, to }: { label: string; val: string; at: number; to: number }) {
   const C = 2 * Math.PI * 20; // arc covers 270°
   return (
@@ -207,21 +245,24 @@ function Knob({ label, val, at, to }: { label: string; val: string; at: number; 
   );
 }
 function Audio() {
-  const a = STAGES[3].a, N = 44;
+  const a = STAGES[3].a;
   return (
     <Scene a={a}>
       <div className="eq">
-        <div className="eq-clip"><Clip n="bgm_flute_drop.mp3" tone="sage" a={0} b={DUR} au st={{ left: 0, width: "100%" }} /></div>
+        <div className="eq-clip"><Clip n="bgm_flute_drop.mp3" tone="sage" a={0} b={DUR} k="a" dur="6.2s" st={{ left: 0, width: "100%" }} /></div>
         <div className="eq-body">
           <div className="eq-panel">
-            <div className="eq-head"><span>LOW <b>+4.0 dB</b></span><span>MID <b>−2.5 dB</b></span><span>HIGH <b>+5.5 dB</b></span></div>
             <div className="eq-plot">
-              <i className="zero" />
-              {Array.from({ length: N }, (_, i) => (
-                <i key={i} className="bar k" style={K(a + 0.15 + i * 0.012, 0.7, { "--kf": "k-h", "--h0": "30%", "--h1": hOf(gainAt(i / (N - 1))) + "%", "--ph": (i * 0.37) % 1.1, left: `${(i / N) * 100 + 0.6}%` })} />
-              ))}
-              {BANDS.map(([f, g], i) => (
-                <i key={f} className="node k" style={K(a + 0.3 + i * 0.05, 0.7, { "--kf": "k-y", "--y0": "70%", "--y1": 100 - hOf(g) + "%", left: `${(i / (BANDS.length - 1)) * 94 + 3}%` })} />
+              {["LOW +4.0 dB", "MID −2.5 dB", "HIGH +5.5 dB"].map((l, i) => <div key={l} className="band" style={{ left: i * 33.333 + "%" }}><span>{l}</span></div>)}
+              {[["+12", 17], ["0", 50], ["−12", 83]].map(([l, y]) => <i key={l} className="gl" style={{ top: y + "%" }}><b>{l}</b></i>)}
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                <g className="eqg k" style={K(a + 0.15, 0.9, { "--kf": "k-sy" })}>
+                  <path className="area" d={EQD + " L100 50 L0 50 Z"} />
+                  <path className="line" d={EQD} />
+                </g>
+              </svg>
+              {PTS.map(([x, y], i) => (
+                <i key={i} className="node k" style={K(a + 0.15 + i * 0.02, 0.9, { "--kf": "k-y", "--y0": "50%", "--y1": y + "%", left: x + "%" })} />
               ))}
             </div>
             <div className="eq-fr">{BANDS.map(([f]) => <small key={f}>{f}</small>)}</div>
@@ -240,38 +281,33 @@ function Audio() {
 
 /* 5 ─ agents own regions. clips never cross a region edge, agents never leave their own ── */
 const Cur = ({ who, tone, at, p }: { who: string; tone: string; at: number; p: number[] }) => (
-  <div className={`cur t-${tone} k`} style={K(at, 1.5, { "--kf": "k-cur", "--x0": p[0] + "%", "--y0": p[1] + "px", "--x1": p[2] + "%", "--y1": p[3] + "px", "--x2": p[4] + "%", "--y2": p[5] + "px", "--ez": "ease-in-out" })}>
+  <div className={`cur t-${tone} k`} style={K(at, 1.5, { "--kf": "k-cur", "--x0": p[0] + "%", "--y0": Y(p[1]), "--x1": p[2] + "%", "--y1": Y(p[3]), "--x2": p[4] + "%", "--y2": Y(p[5]), "--ez": "ease-in-out" })}>
     <svg width="13" height="15" viewBox="0 0 11 13"><path d="M1 1 L1 11 L4 8 L6.4 12.4 L8 11.6 L5.7 7.3 L9.6 7 Z" fill="currentColor" stroke="#101017" strokeWidth=".8" strokeLinejoin="round" /></svg>
     <span>{who}</span>
   </div>
 );
 function Agents() {
   const a = STAGES[4].a;
-  const R1: [number, number] = [0.1, 5.1], R2: [number, number] = [9.9, 14.9];
+  const regions = [[0.1, 5.1, "lime", "intro", "intro-agent"], [9.9, 14.9, "orange", "outro", "outro-agent"]] as const;
   return (
     <Scene a={a}>
-      <div className="lns" style={{ "--lh": "50px", top: 34 } as CSSProperties}>
-        {([[R1, "lime", "intro", "intro-agent"], [R2, "orange", "outro", "outro-agent"]] as const).map(([r, tone, rn, ag]) => (
-          <div key={rn} className={`reg t-${tone} k`} style={{ left: P(r[0]), width: P(r[1] - r[0]), ...K(a + 0.05, 0.3) }}><b><i />{rn} · {ag}</b></div>
+      <div className="lns" style={{ "--top": "32px" } as CSSProperties}>
+        {regions.map(([r0, r1, tone, rn, ag]) => (
+          <div key={rn} className={`reg t-${tone} k`} style={{ left: P(r0), width: P(r1 - r0), ...K(a + 0.05, 0.3) }}><b><i />{rn} · {ag}</b></div>
         ))}
-        <div className="ln">
-          <Clip n="title_card" tone="violet" a={0.5} b={3.4} st={{ "--kf": "k-w", "--w0": P(2.9), "--w1": P(2.1), "--at": a + 0.8, "--d": 0.5 } as CSSProperties} cls="k" />
-          <Clip n="skate_ramp" tone="orange" a={5.6} b={9.2} />
-          <Clip n="end_card" tone="pink" a={11} b={14.4} cls="k" st={{ ...K(a + 1.0, 0.5, { "--kf": "k-mv", "--x0": P(11), "--x1": P(10.3) }) }} />
-        </div>
-        <div className="ln">
-          <Clip n="broll_13" tone="blue" a={0.3} b={4.9}><Tag at={a + 0.6}>GaussianBlurEffect</Tag></Clip>
-          <Clip n="broll_16" tone="teal" a={5.4} b={7.4} cls="half" />
-          <Clip n="broll_16" tone="teal" a={7.4} b={9.6} cls="half"><i className="nudge" style={K(a + 1.3, 0.3, { "--kf": "k-gap" })} /></Clip>
-          <Clip n="broll_7" tone="blue" a={10.1} b={14.7}><Tag at={a + 1.5}>VignetteEffect</Tag></Clip>
-        </div>
-        <div className="ln">
-          <Clip n="bgm" tone="sage" a={0.3} b={4.9} au /><Clip n="bgm" tone="sage" a={5.4} b={9.6} au /><Clip n="bgm" tone="sage" a={10.1} b={14.7} au />
-        </div>
-        <Cur who="intro-agent" tone="lime" at={a + 0.1} p={[8, 30, 15, 64, 22, 20]} />
-        <Cur who="outro-agent" tone="orange" at={a + 0.2} p={[92, 90, 78, 20, 72, 24]} />
-        <Cur who="agent-3" tone="teal" at={a + 0.7} p={[44, 100, 50, 76, 49, 100]} />
-        <div className="flash k" style={{ ...K(a + 1.3, 0.2, { "--kf": "k-flash" }), left: P(7.4) }} />
+        <Project a={a}
+          x={{ title: (cl, at) => Trim(cl, at, 2.9, a + 0.9), vhs: (cl, at) => Trim(cl, at, 12.4, a + 1.0), b16: (cl, at) => Split(cl, at, 7.5, a + 1.5) }}
+          fx={{ b13: ["GaussianBlurEffect", a + 1.6], b7: ["VignetteEffect", a + 1.7] }}>
+          <Cur who="intro-agent" tone="lime" at={a + 0.1} p={[6, 0.3, 24, 1.5, 12, 4.5]} />
+          <Cur who="outro-agent" tone="orange" at={a + 0.2} p={[94, 3, 89, 0.5, 80, 4.5]} />
+          <Cur who="agent-3" tone="teal" at={a + 0.7} p={[58, 6.8, 50, 4.5, 55, 2.7]} />
+          <div className="flash k" style={{ ...K(a + 1.5, 0.2, { "--kf": "k-flash" }), left: P(7.5) }} />
+        </Project>
+      </div>
+      <div className="stat">
+        {([["lime", "intro-agent", "trim(title_card)", 1.3], ["orange", "outro-agent", "trim(vhs_overlay)", 1.4], ["teal", "agent-3", "split(broll_16)", 1.8]] as const).map(([tone, who, op, t]) => (
+          <span key={who} className={`pill t-${tone} k`} style={K(a + t, 0.25)}><i /><b>{who}</b>{op}</span>
+        ))}
       </div>
     </Scene>
   );
@@ -303,6 +339,7 @@ function Fusion() {
           <Edge at={a + 1.5} />
           <FNode at={a + 1.5} tone="sage" name="out_main" thumb={<><i className="th" /><i className="th fin k" style={K(a + 1.55, 0.4, { "--kf": "k-fade" })} /></>} />
         </div>
+        <div className="ln fu-lane"><Clip n="broll_7" tone="blue" a={0.4} b={14.6} kd={[18, 52, 84]} fx="fusion_backdrop_dag" fxAt={a + 1.3} at={a + 0.2} /></div>
       </div>
       <Call at={a + 0.45} until={a + 1.2}>fg.add_node(FusionEffectNode(id="bg_blur", effect_type="gaussian_blur"))</Call>
       <Call at={a + 1.2}>c_th_bg.add_effect(fg_bg.as_effect(id="fusion_backdrop_dag"))</Call>
@@ -310,33 +347,23 @@ function Fusion() {
   );
 }
 
-/* 7 ─ the finished edit: the adjustment clip is the TOP track, so it grades everything below ── */
+/* 7 ─ the finished edit: a short adjustment clip on the TOP track grades only what is below it ── */
 function Effects() {
   const a = STAGES[6].a;
+  const E = (name: string, t: number): [string, number] => [name, a + t];
   return (
     <Scene a={a}>
-      <div className="lns" style={{ "--lh": "38px", top: 12 } as CSSProperties}>
-        <div className="ln adj">
-          <Clip n="AdjustmentClipVisual · glow + vignette + grade → every track below" tone="lime" a={0.4} b={14.6} at={a + 0.1} cls="adjc" />
-        </div>
-        <div className="sheet k" style={K(a + 0.35, 0.6, { "--kf": "k-sy" })} />
-        <div className="ln">
-          <Clip n="title_card" tone="violet" a={1.2} b={7.6}><Tag at={a + 0.7}>GlowEffect</Tag></Clip>
-          <Clip n="lower_third" tone="pink" a={8.4} b={13}><Tag at={a + 0.9}>DropShadow</Tag></Clip>
-        </div>
-        <div className="ln">
-          <Clip n="broll_16_city" tone="lime" a={1.8} b={6.6}><Tag at={a + 0.8}>MaskEffect</Tag></Clip>
-          <Clip n="skate_ramp" tone="violet" a={6.9} b={11}><Tag at={a + 1.0}>PixelateEffect</Tag></Clip>
-          <Clip n="green_key" tone="orange" a={11.2} b={14.4}><Tag at={a + 1.1}>ChromaKey</Tag></Clip>
-        </div>
-        <div className="ln">
-          <Clip n="broll_13" tone="blue" a={0.4} b={5} /><Clip n="broll_16" tone="orange" a={5.2} b={10}><Tag at={a + 1.2}>GaussianBlur</Tag></Clip>
-          <Clip n="broll_7" tone="blue" a={10.2} b={14.6} />
-        </div>
-        <div className="ln"><Clip n="vo" tone="teal" a={0.4} b={4.8} au /><Clip n="vo" tone="teal" a={5.2} b={9.8} au /><Clip n="vo_outro" tone="teal" a={10.2} b={14.6} au /></div>
-        <div className="ln"><Clip n="bgm_flute_drop" tone="sage" a={0.4} b={14.6} au><Tag at={a + 1.3}>Compressor</Tag></Clip></div>
+      <div className="lns">
+        <Project a={a} fx={{
+          title: E("GlowEffect", 0.5), speed: E("SpeedEffect", 0.6), callout: E("DropShadowEffect", 0.7), lower: E("VignetteEffect", 0.8),
+          light: E("FilmGrainEffect", 0.9), city: E("MaskEffect", 1.0), skate: E("PixelateEffect", 1.1), key: E("ChromaKeyEffect", 1.2),
+          b13: E("GaussianBlurEffect", 1.3), b7: E("ColorGradeEffect", 1.4), vo5: E("DenoiseEffect", 1.5), bgm1: E("CompressorEffect", 1.6),
+        }}
+          top={<div className="ln adj"><Clip n="AdjustmentClipVisual" tone="lime" a={5.6} b={9.8} at={a + 0.1} cls="adjc" fx="glow + vignette + grade" fxAt={a + 0.1} /></div>}>
+          <div className="sheet k" style={{ left: P(5.6), width: P(4.2), ...K(a + 0.35, 0.6, { "--kf": "k-sy" }) }} />
+        </Project>
       </div>
-      <Call at={a + 0.1} until={a + 1.0}>eng.add_adjustment_visual(visual_track_id=v5.id, duration=Time(14.2))</Call>
+      <Call at={a + 0.1} until={a + 1.0}>eng.add_adjustment_visual(visual_track_id=v6.id, start=Time(5.6), duration=Time(4.2))</Call>
       <Call at={a + 1.0}>render_project(eng.snapshot(), resolver, "hero.mp4")</Call>
     </Scene>
   );

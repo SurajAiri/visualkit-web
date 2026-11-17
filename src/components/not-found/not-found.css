@@ -1,0 +1,56 @@
+/* ───────────── 404: the playhead landed in a gap ─────────────
+   Same vocabulary as the hero timeline (ruler, clips, hatch, lime playhead) and the closing grid.
+   The one moment of motion: the playhead scrubs in and parks in the empty gap, then its timecode pops. */
+.nf { --p: 27.56%; /* playhead = 00:04:04 of 15 s */
+  position: relative; min-height: calc(100svh - 73px); display: flex; flex-direction: column; justify-content: center;
+  padding: clamp(112px, 12vw, 150px) var(--gutter) clamp(48px, 6vw, 80px); }
+.nf-grid { position: absolute; inset: 0; opacity: 0.6; pointer-events: none; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 56px); -webkit-mask-image: radial-gradient(70% 80% at 50% 50%, #000, transparent); mask-image: radial-gradient(70% 80% at 50% 50%, #000, transparent); }
+.site-nav.nf-nav { position: absolute; } /* scrolls away with the page: there is no stuck state here */
+
+.nf-copy { position: relative; }
+.nf-copy .section-kicker { margin-bottom: 26px; }
+.nf-copy h1 { margin: 0; max-width: 10em; font: 700 clamp(2.7rem, 5.4vw, 4.9rem) / 1 var(--sans); letter-spacing: -0.05em; text-wrap: balance; }
+.nf-copy p { margin-top: 22px; max-width: 46ch; color: var(--muted); font-size: clamp(15px, 1.25vw, 17px); line-height: 1.55; }
+.nf-path { padding: 2px 7px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255, 255, 255, 0.06); font: 400 0.86em var(--mono); color: var(--text); overflow-wrap: anywhere; }
+.nf-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; margin-top: 28px; }
+
+/* timeline panel (same shell as .hx-tl) */
+.nf-tl { --in: clamp(16px, 3vw, 36px); --rail: 34px; position: relative; margin-top: clamp(36px, 5vw, 64px); padding: 0 var(--in) 20px; border: 1px solid var(--line); border-radius: 16px; background: #0e0d14; overflow: hidden; }
+.nf-body { position: relative; margin-left: var(--rail); }
+.nf-ruler { position: relative; height: 38px; margin-bottom: 10px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.3) 0 1px, transparent 1px calc(100% / 15)) bottom / 100% 9px no-repeat,
+              repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px calc(100% / 75)) bottom / 100% 5px no-repeat; }
+.nf-ruler b { position: absolute; top: 11px; padding-left: 5px; font: 500 11px var(--mono); color: #8d8a9b; }
+
+.nf-lanes { position: relative; display: grid; gap: 8px; }
+.nf-lane { position: relative; height: 40px; border-radius: 7px; background: rgba(255, 255, 255, 0.028); }
+.nf-track { position: absolute; right: 100%; top: 50%; margin-right: 10px; translate: 0 -50%; font: 500 10.5px/1 var(--mono); color: #6f6c7c; }
+
+/* clips: the hero's .cl look */
+.nf-clip { position: absolute; top: 0; height: 100%; padding: 0 1px; --c: var(--violet); container-type: inline-size; }
+.nf-clip[data-tone="violet"] { --c: var(--violet); } .nf-clip[data-tone="teal"] { --c: var(--teal); } .nf-clip[data-tone="blue"] { --c: #6f8dff; }
+.nf-clip[data-tone="sage"] { --c: #8fa06a; } .nf-clip[data-tone="orange"] { --c: var(--orange); } .nf-clip[data-tone="pink"] { --c: var(--pink); }
+.nf-clip > div { position: relative; height: 100%; overflow: hidden; border-radius: 6px; color: var(--c); border: 1px solid color-mix(in oklab, var(--c) 75%, transparent); background: color-mix(in oklab, var(--c) 24%, #14131c); }
+.nf-clip > div > span:not(.nf-wave) { position: absolute; left: 8px; top: 6px; font: 500 10.5px/1 var(--mono); white-space: nowrap; }
+@container (width < 64px) { .nf-clip > div > span:not(.nf-wave) { display: none; } } /* too narrow for its name: show the bare clip */
+.nf-wave { position: absolute; inset: 6px 8px; display: flex; align-items: center; justify-content: space-between; opacity: 0.5; }
+.nf-wave i { display: block; flex: 0 1 1.6px; min-width: 0; min-height: 2px; border-radius: 1px; background: currentColor; }
+
+/* the hole: nothing on any track (hatch like the hero's claimed regions, but neutral, because nobody owns it) */
+.nf-gap { position: absolute; left: 17%; width: 25%; top: -4px; bottom: -4px; z-index: 2; border-radius: 6px; border: 1px dashed rgba(255, 255, 255, 0.3);
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 4px, transparent 4px 8px); }
+.nf-gap-tag { position: absolute; right: 10px; top: 50%; translate: 0 -50%; padding: 6px 10px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 7px; background: rgba(8, 7, 12, 0.9); font: 11.5px/1 var(--mono); color: #d8d6e2; white-space: nowrap; animation: nf-pop 0.35s var(--ease) 1.65s both; }
+.nf-gap-tag small { font-size: inherit; color: var(--muted); }
+
+/* playhead: the hero's .hx-ph, parked at --p */
+.nf-ph { position: absolute; inset: 0; z-index: 6; pointer-events: none; translate: var(--p) 0; animation: nf-scrub 1.5s var(--ease) 0.3s both; }
+.nf-ph::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 1px; background: var(--lime); box-shadow: 0 0 14px rgba(197, 251, 99, 0.55); }
+.nf-ph span { position: absolute; top: 6px; left: 0; translate: -50% 0; padding: 3px 7px; border-radius: 5px; background: var(--lime); color: #101017; font: 600 11px/1.2 var(--mono); white-space: nowrap; animation: nf-pop 0.35s var(--ease) 1.65s both; }
+@keyframes nf-scrub { from { translate: 0 0; } }
+@keyframes nf-pop { from { opacity: 0; transform: translateY(4px); } }
+
+@media (max-width: 640px) {
+.nf-tl { --rail: 26px; }
+.nf-ruler b:not(:nth-child(3n + 1)) { display: none; } /* 0s 3s 6s 9s 12s */
+.nf-gap-tag { display: none; }
+}

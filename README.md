@@ -1,6 +1,6 @@
 # VisualKit landing page
 
-Next.js 16 · React 19 · Tailwind 4 (tokens only) · plain CSS per section. One page, no routes.
+Next.js 16 · React 19 · Tailwind 4 (tokens only) · plain CSS per section. One page, plus a 404.
 
 ```bash
 pnpm install
@@ -33,3 +33,4 @@ Each section folder owns its CSS file; `app/globals.css` holds only tokens, butt
 - Demo video URL: `lib/site.ts` (`HERO_VIDEO`). Python / FFmpeg requirement line: `REQUIREMENTS` in the same file.
 - More-features grid: the `FEATURES` array in `more-features/MoreFeatures.tsx`. FAQ: the `FAQ` array in `faq/Faq.tsx` (also feeds the FAQPage JSON-LD).
 - Claimed-region scenarios: `claimed-region/claims.ts`. Run the check script after changing them.
+- 404 page: `app/not-found.tsx` renders `components/not-found/NotFoundPage.tsx`. The gap (17%–42%) and playhead (00:04:04 = 27.56%) are mirrored between the clip data in that file and `not-found.css` (`--p`, `.nf-gap`). `Logo` and `Footer` take an `href` / `home` prop so they point at `/` instead of `#top` off the landing page.

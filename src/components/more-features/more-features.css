@@ -1,0 +1,16 @@
+/* ───────────── 07 · more features: title + one line ───────────── */
+.more-section { background: var(--paper); color: var(--ink); padding: 112px var(--gutter) 108px; }
+.more-section .section-kicker { color: #6a6872; }
+.more-section h2 { color: var(--ink); font-size: clamp(2.4rem, 3.9vw, 3.5rem); }
+.more-section h2 span { color: #77727f; }
+.more-section .feature-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; }
+.more-section .feature-count { font: 400 9.5px/1.7 var(--mono); letter-spacing: 0.14em; color: #625f6b; text-align: right; padding-bottom: 10px; }
+.more-section .feature-count strong { color: var(--ink); font-weight: 600; }
+.more-grid { list-style: none; margin: 56px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--paper-line); border-left: 1px solid var(--paper-line); }
+.more-grid li { position: relative; padding: 22px 24px 26px; border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); transition: background-color 0.25s; }
+.more-grid li:hover { background: var(--paper-2); }
+.more-grid li > span { font: 500 10px/1 var(--mono); color: var(--sage); letter-spacing: 0.08em; }
+.more-grid strong { display: block; margin-top: 14px; font: 700 1.05rem/1.25 var(--sans); letter-spacing: -0.02em; color: var(--ink); }
+.more-grid p { margin-top: 8px; font-size: 0.875rem; line-height: 1.65; color: #625f6b; }
+@media (max-width: 1040px) { .more-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .more-section .feature-heading { flex-direction: column; align-items: flex-start; gap: 24px; } .more-section .feature-count { text-align: left; } }
+@media (max-width: 640px) { .more-grid { grid-template-columns: 1fr; } .more-section { padding: 88px var(--gutter); } }

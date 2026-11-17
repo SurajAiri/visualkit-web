@@ -1,5 +1,7 @@
 export const DOCS_URL = "https://surajairi.github.io/visualkit/";
 
+export const REQUIREMENTS = "Python 3.10 or later. FFmpeg for probing and rendering.";
+
 export const INSTALL = {
   uv: "uv add visualkit",
   pip: "pip install visualkit",

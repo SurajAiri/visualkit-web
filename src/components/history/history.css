@@ -1,0 +1,52 @@
+/* ───────────── 04 · history, branches, checkpoints ───────────── */
+.history-section { background: var(--paper); color: var(--ink); padding: 116px var(--gutter) 112px; display: grid; grid-template-columns: minmax(0, 430px) minmax(0, 1fr); gap: 64px; align-items: center; }
+.history-section :focus-visible { outline-color: var(--ink); }
+.history-section .section-kicker { color: #6a6872; }
+.history-section h2 { color: var(--ink); font-size: clamp(2.4rem, 3.9vw, 3.5rem); }
+.history-section h2 span { color: #77727f; }
+.history-copy > p { margin-top: 22px; font-size: 0.9375rem; line-height: 1.85; color: #625f6b; }
+.history-points { list-style: none; margin: 32px 0 0; padding: 0; border-top: 1px solid var(--paper-line); }
+.history-points li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--paper-line); color: var(--sage); }
+.history-points svg { margin-top: 3px; }
+.history-points strong { display: block; font: 650 0.92rem/1.3 var(--sans); color: var(--ink); }
+.history-points small { display: block; margin-top: 3px; font-size: 0.8125rem; line-height: 1.6; color: #625f6b; }
+.history-hint { display: flex; align-items: flex-start; line-height: 1.5; gap: 8px; margin-top: 22px; font: 500 10.5px/1.5 var(--mono); letter-spacing: 0.03em; color: #77727f; }
+.history-hint svg { margin-top: 2px; flex: none; }
+
+/* the lab: a dark card on the paper section */
+.lab { min-width: 0; background: var(--panel); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 18px 18px 16px; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.55); color: var(--text); }
+.lab-bar { display: flex; flex-wrap: wrap; gap: 7px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.lab-bar button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.03); font: 600 11.5px/1 var(--sans); color: #e9e7f2; transition: border-color 0.2s, background-color 0.2s, color 0.2s, opacity 0.2s; }
+.lab-bar button:hover:not(:disabled) { border-color: var(--lime); color: var(--lime); background: rgba(197, 251, 99, 0.07); }
+.lab-bar button:disabled { opacity: 0.32; cursor: not-allowed; }
+.lab-term { position: relative; }
+.lab-reset { position: absolute; top: 10px; right: 10px; padding: 5px 9px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; font: 500 10px/1 var(--mono); color: #a8a6b3; }
+.lab-reset:hover { color: var(--lime); border-color: var(--lime); }
+.lab :focus-visible { outline-color: var(--lime); }
+
+.lab-graph { display: block; width: 100%; height: auto; margin-top: 8px; overflow: visible; }
+.lab-lane { font: 500 11px/1 var(--mono); fill: #6c697c; letter-spacing: 0.08em; }
+.lab-edge { fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 2; stroke-linecap: round; }
+.lab-edge.is-ghost { stroke-dasharray: 4 5; stroke: rgba(255, 255, 255, 0.22); }
+.lab-ghost { fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.lab-node { animation: labIn 0.5s var(--ease) both; }
+.lab-node circle { stroke: var(--panel); stroke-width: 3; paint-order: stroke; }
+.lab-id { font: 600 12.5px/1 var(--mono); fill: #e9e7f2; }
+.lab-msg { font: 400 10.5px/1 var(--mono); fill: #8f8c9d; }
+.lab-cp path:first-child { stroke: var(--lime); stroke-width: 1.5; fill: none; }
+.lab-cp path:nth-child(2) { fill: var(--lime); }
+.lab-cp text { font: 600 11px/1 var(--mono); fill: var(--lime); }
+.lab-head rect { fill: var(--lime); }
+.lab-head text { font: 700 8.5px/1 var(--mono); fill: #14131c; letter-spacing: 0.08em; }
+@keyframes labIn { from { opacity: 0; transform: translateY(6px); } }
+
+.lab-term { margin-top: 6px; padding: 13px 14px; border-radius: 6px; background: #0f0e15; border: 1px solid rgba(255, 255, 255, 0.06); display: grid; gap: 7px; min-height: 76px; }
+.lab-term code { padding-right: 64px; font: 500 12px/1.4 var(--mono); color: #e9e7f2; overflow-wrap: anywhere; }
+.lab-term code i { font-style: normal; color: var(--lime); margin-right: 8px; }
+.lab-term span { font-size: 0.8125rem; line-height: 1.55; color: #a8a6b3; }
+
+@media (max-width: 1040px) { .history-section { grid-template-columns: 1fr; gap: 48px; padding: 92px var(--gutter) 88px; } }
+@media (prefers-reduced-motion: reduce) { .lab-node { animation: none; } }
+
+.lab-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+@media (max-width: 640px) { .lab-graph { min-width: 600px; } }

@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VisualKit landing page
 
-## Getting Started
-
-First, run the development server:
+Next.js 16 · React 19 · Tailwind 4 (tokens only) · plain CSS per section. One page, no routes.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev          # http://localhost:3000
+pnpm build
+node --experimental-strip-types scripts/check-claims.mjs   # claimed-region data consistency
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Page order
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| # | Section | Folder | id |
+|---|---------|--------|----|
+|   | Hero (timeline + demo video) | `components/hero` | `top` |
+| 01 | How it works: Agent → VisualKit engine → Renderer | `components/architecture` | `how-it-works` |
+| 02 | Benefits: batch edits, coded clips, lightweight | `components/benefits` | `benefits` |
+| 03 | Three data states: Draft · Session · Store | `components/engine-states` | `engine` |
+| 04 | History: commit, checkpoint, branch, merge, undo, redo, rollback | `components/history` | `history` |
+| 05 | Renderer independence | `components/backends` | `backends` |
+| 06 | Claimed regions | `components/claimed-region` | `claimed-region` |
+| 07 | More features (one-liners) | `components/more-features` | `more` |
+| 08 | FAQ | `components/faq` | `faq` |
+|   | Install + typed script | `components/closing` | `start` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Shared pieces: `components/layout` (Nav, Logo, Footer), `components/ui` (Reveal, useInView, Wave).
+Each section folder owns its CSS file; `app/globals.css` holds only tokens, buttons, nav and footer.
 
-## Learn More
+## Where to edit things
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Hero copy: `components/hero/Hero.tsx`. Hero timeline scenes and retiming: `components/hero/HeroScenes.tsx` (`STAGES`).
+- Demo video URL: `lib/site.ts` (`HERO_VIDEO`). Python / FFmpeg requirement line: `REQUIREMENTS` in the same file.
+- More-features grid: the `FEATURES` array in `more-features/MoreFeatures.tsx`. FAQ: the `FAQ` array in `faq/Faq.tsx` (also feeds the FAQPage JSON-LD).
+- Claimed-region scenarios: `claimed-region/claims.ts`. Run the check script after changing them.

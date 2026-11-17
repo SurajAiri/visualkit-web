@@ -1,13 +1,15 @@
-import Nav from "@/components/Nav";
-import Hero from "@/components/Hero";
-import Manifesto from "@/components/Manifesto";
-import Architecture from "@/components/Architecture";
-import Features from "@/components/Features";
-import ClaimSection from "@/components/ClaimSection";
-import Safety from "@/components/Safety";
-import BackendsSection from "@/components/BackendsSection";
-import Closing from "@/components/Closing";
-import Footer from "@/components/Footer";
+import Nav from "@/components/layout/Nav";
+import Footer from "@/components/layout/Footer";
+import Hero from "@/components/hero/Hero";
+import Architecture from "@/components/architecture/Architecture";
+import Benefits from "@/components/benefits/Benefits";
+import EngineStates from "@/components/engine-states/EngineStates";
+import History from "@/components/history/History";
+import BackendsSection from "@/components/backends/BackendsSection";
+import ClaimSection from "@/components/claimed-region/ClaimSection";
+import MoreFeatures from "@/components/more-features/MoreFeatures";
+import Faq from "@/components/faq/Faq";
+import Closing from "@/components/closing/Closing";
 
 export default function Home() {
   return (
@@ -15,12 +17,14 @@ export default function Home() {
       <Nav />
       <main id="main">
         <Hero />
-        <Manifesto />
         <Architecture />
-        <Features />
-        <ClaimSection />
-        <Safety />
+        <Benefits />
+        <EngineStates />
+        <History />
         <BackendsSection />
+        <ClaimSection />
+        <MoreFeatures />
+        <Faq />
         <Closing />
       </main>
       <Footer />

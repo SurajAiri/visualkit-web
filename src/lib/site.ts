@@ -13,7 +13,8 @@ export const INSTALL_KEYS = Object.keys(INSTALL) as InstallKey[];
    Same URL every visit = the browser's HTTP cache serves it from disk after the first load.
    Re-uploaded the video? Bump the public_id (…-v2) or use the versioned URL (…/upload/v123456/…) so cached copies refresh. */
 const CLD = "https://res.cloudinary.com/dlzdj6k6u/video/upload";
-const ID = "visualkit-demo-v1_xyhvvy";
+// const ID = "visualkit-demo-v1_xyhvvy";
+const ID = "visuakit-demo-v2_leehdm";
 export const HERO_VIDEO = {
   mp4: `${CLD}/${ID}.mp4`,
   poster: `${CLD}/so_0,w_1280/${ID}.jpg`,

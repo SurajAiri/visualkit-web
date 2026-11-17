@@ -1,93 +1,86 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowDown, ArrowRight, Pause, Play } from "lucide-react";
-import InstallCommand from "./InstallCommand";
+import { ArrowDown, Pause, Play } from "lucide-react";
 import { useInView, useReducedMotion } from "./useInView";
-import { Agents, Audio, Cut, DUR, Effects, Fusion, Keys, Script, STAGES } from "./HeroStages";
-import { DOCS_URL, HERO_VIDEO } from "@/lib/site";
+import { DUR, Stage, STAGES } from "./HeroScenes";
+import { HERO_VIDEO } from "@/lib/site";
 import "./hero.css";
 
-const REST = 14.3; // where reduced-motion users get parked: the finished timeline
+const REST = 14.3; // reduced-motion users are parked on the finished timeline
 const pad = (n: number) => String(n).padStart(2, "0");
 const tc = (t: number) => `${pad(Math.floor(t / 60))}:${pad(Math.floor(t) % 60)}:${pad(Math.floor((t % 1) * 30))}`;
+const stageAt = (t: number) => Math.max(0, STAGES.findIndex((s) => t >= s.a && t < s.b));
 
-/* in / out = how each stage enters and leaves; o = zoom origin of the clip being dived into */
-const SCENES = [
-  { C: Script, cls: "no-out" },
-  { C: Cut, cls: "in-wipe out-grow", o: "16% 62%" },
-  { C: Keys, cls: "in-grow out-shrink" },
-  { C: Audio, cls: "in-grow out-shrink" },
-  { C: Agents, cls: "in-pull out-grow", o: "72% 60%" },
-  { C: Fusion, cls: "in-grow out-shrink" },
-  { C: Effects, cls: "in-pull sc-last" },
-];
+/* The stage is drawn at a fixed logical size and scaled to fit, so it looks identical at any width.
+   Phones get a narrower logical canvas so text stays readable instead of shrinking to nothing. */
+const size = (w: number) => (w < 720 ? { w: 480, h: 470 } : { w: 1000, h: 400 });
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
   const flag = useRef<HTMLSpanElement>(null);
   const clock = useRef<HTMLSpanElement>(null);
-  const scenes = useRef<HTMLElement[]>([]);
+  const box = useRef<HTMLDivElement>(null);
   const t = useRef(0);
   const cur = useRef(0);
   const reduced = useReducedMotion();
   const inView = useInView(root, 0.05);
   const [user, setUser] = useState(true);
   const [stage, setStage] = useState(0);
+  const [fit, setFit] = useState({ w: 1000, h: 400, s: 1 });
   const playing = user && inView && !reduced;
 
-  /* the single source of truth: write --t once, CSS does the rest for playhead, scenes and every in-scene motion */
+  /* single source of truth: write --t once per frame, CSS does the rest */
   const paint = useCallback((x: number) => {
-    const el = root.current;
-    if (!el) return;
-    el.style.setProperty("--t", x.toFixed(3));
+    root.current?.style.setProperty("--t", x.toFixed(3));
     const s = tc(x);
     if (flag.current) flag.current.textContent = s;
     if (clock.current) clock.current.textContent = s;
-    let now = cur.current;
-    scenes.current.forEach((n, i) => {
-      const { a, b } = STAGES[i];
-      const live = x > a - 0.3 && x < b + 0.3;
-      if (n.hidden === live) n.hidden = !live;
-      if (x >= a && x < b) now = i;
-    });
-    if (now !== cur.current) { cur.current = now; setStage(now); }
+    const n = stageAt(x);
+    if (n !== cur.current) { cur.current = n; setStage(n); }
   }, []);
 
   const seek = useCallback((s: number) => {
     const x = Math.max(0, Math.min(DUR - 0.01, s));
     t.current = x;
     const v = vid.current;
-    if (v) { try { v.currentTime = x; } catch { /* metadata not ready yet; the loop will catch up */ } }
+    if (v) { try { v.currentTime = x; } catch { /* metadata not ready: the loop catches up */ } }
     paint(x);
   }, [paint]);
 
   useEffect(() => {
     const v = vid.current;
-    scenes.current = Array.from(root.current?.querySelectorAll<HTMLElement>("[data-sc]") ?? []);
     if (reduced) { v?.pause(); seek(REST); return; }
     if (!playing) { v?.pause(); paint(t.current); return; }
     if (v) {
       if (Math.abs(v.currentTime - t.current) > 0.15) { try { v.currentTime = t.current; } catch { /* ignore */ } }
-      v.play().catch(() => { /* autoplay blocked or no file: the clock free-runs below */ });
+      v.play().catch(() => { /* autoplay blocked or file missing: the clock free-runs below */ });
     }
-    let raf = 0;
-    let last = performance.now();
+    let raf = 0, last = performance.now();
     const step = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (v && !v.paused) {
-        // The video is the master clock. While it buffers, currentTime holds still, so the timeline holds too.
-        t.current = v.currentTime % DUR;
-      } else {
-        t.current = (t.current + dt) % DUR; // no playable video yet: free-run so the widget never stalls
-      }
+      // The timeline owns a 0→15 s clock so every stage always plays. It only follows the video
+      // when that video is really ~15 s long (otherwise a short or still-loading file would pin it to the start).
+      const synced = v && !v.paused && v.readyState >= 2 && Math.abs(v.duration - DUR) < 0.75;
+      t.current = synced ? v.currentTime % DUR : (t.current + dt) % DUR;
       paint(t.current);
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [playing, reduced, paint, seek]);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => {
+      const cw = e.contentRect.width, d = size(cw);
+      setFit({ ...d, s: cw / d.w });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const scrub = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.type === "pointermove" && e.buttons !== 1) return;
@@ -96,52 +89,40 @@ export default function Hero() {
   };
 
   return (
-    <section className={"vh" + (playing ? "" : " is-paused")} id="top" ref={root} style={{ ["--t" as string]: 0 } as CSSProperties}>
-      <div className="vh-top">
-        <div className="vh-video" aria-hidden="true">
-          <video ref={vid} src={HERO_VIDEO} muted loop playsInline preload="auto" />
-        </div>
-        <div className="vh-copy">
-          <h1>Agents edit<br />your <em>video.</em></h1>
-          <p>
-            Open-source Python library for editing video. Agents describe changes in batches, claim the seconds
-            they’re working on, and hand a settled snapshot to FFmpeg, DaVinci Resolve or OpenTimelineIO.
-          </p>
-          <div className="vh-actions">
-            <a className="button-primary" href="#how-it-works">See how it works <ArrowDown size={16} aria-hidden /></a>
-            <a className="button-text" href={DOCS_URL} target="_blank" rel="noreferrer">Meet the library <ArrowRight size={16} aria-hidden /></a>
-          </div>
-          <InstallCommand className="is-hero" />
-        </div>
-      </div>
-
-      <div className="vh-wrap">
-        <div className="vh-ph" aria-hidden="true"><i /><span ref={flag}>00:00:00</span></div>
-        <div className="vh-tl" role="img" aria-label="A video timeline built in seven steps: a Python script, split and trim, keyframes, an audio equalizer, two agents editing claimed regions, a fusion graph, and finished effects. The playhead is synced to the demo video above.">
-          <div className="vh-scrub" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }} onPointerMove={scrub} />
-          <div className="vh-cam" aria-hidden="true">
-            {SCENES.map(({ C, cls, o }, i) => (
-              <div key={i} data-sc hidden={i > 0} className={`vh-sc ${cls}`}
-                style={{ ["--a0" as string]: STAGES[i].a, ["--b0" as string]: STAGES[i].b, ...(o ? { ["--o" as string]: o } : {}) } as CSSProperties}>
-                <C />
-              </div>
-            ))}
+    <section className="hx" id="top" ref={root} style={{ ["--t" as string]: 0 } as CSSProperties}>
+      <div className="hx-grid">
+        <div className="hx-copy">
+          <h1>Let AI edit your videos.</h1>
+          <p>VisualKit is an open-source Python library that lets agents cut, keyframe and render video on a shared timeline.</p>
+          <div className="hx-cta">
+            <a className="button-primary" href="#start">Get started <ArrowDown size={16} aria-hidden /></a>
+            <a className="button-text" href="#how-it-works">See how it works</a>
           </div>
         </div>
-        <div className="vh-foot">
-          <div className="vh-steps">
-            {STAGES.map((s, i) => (
-              <button key={s.id} aria-current={stage === i} onClick={() => seek(s.a + 0.02)}><b>{i + 1}</b><span>{s.label}</span></button>
-            ))}
-          </div>
-          <div className="vh-transport">
+        <figure className="hx-media">
+          <div className="hx-frame"><video ref={vid} src={HERO_VIDEO} muted loop playsInline preload="auto" aria-label="A 15-second video edited by an agent using VisualKit" /></div>
+          <figcaption className="hx-bar">
             <span><span ref={clock}>00:00:00</span> / {tc(DUR)}</span>
             {!reduced && (
-              <button className="hero-toggle" onClick={() => setUser(!user)} aria-label={user ? "Pause demo" : "Play demo"}>
-                {user ? <Pause size={12} aria-hidden /> : <Play size={12} aria-hidden />}<span>{user ? "pause" : "play"}</span>
+              <button className="hx-play" onClick={() => setUser(!user)} aria-label={user ? "Pause demo" : "Play demo"}>
+                {user ? <Pause size={12} aria-hidden /> : <Play size={12} aria-hidden />}{user ? "pause" : "play"}
               </button>
             )}
+          </figcaption>
+        </figure>
+      </div>
+
+      <div className="hx-tl" role="img" aria-label="A 15-second timeline built in seven steps: a Python script, split and trim, keyframes, an audio equalizer, agents editing claimed regions, a fusion graph, and an adjustment clip over the finished edit. The playhead is synced to the demo video above.">
+        <div className="hx-in">
+          <div className="hx-ruler" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }} onPointerMove={scrub}>
+            {Array.from({ length: DUR }, (_, i) => <b key={i} style={{ left: (i / DUR) * 100 + "%" }}>{i}s</b>)}
           </div>
+          <div className="hx-stagebox" ref={box} style={{ height: fit.h * fit.s }}>
+            <div className="hx-stage" style={{ width: fit.w, height: fit.h, transform: `scale(${fit.s})` }}>
+              <Stage key={stage} i={stage} />
+            </div>
+          </div>
+          <div className="hx-ph" aria-hidden="true"><span ref={flag}>00:00:00</span></div>
         </div>
       </div>
     </section>

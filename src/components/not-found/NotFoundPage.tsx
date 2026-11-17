@@ -62,7 +62,7 @@ export default function NotFoundPage() {
         <Logo href="/" label="VisualKit home" />
       </header>
 
-      <main id="main" className="nf">
+      <main id="main" className="nf" tabIndex={-1}>
         <div className="nf-grid" aria-hidden="true" />
 
         <div className="nf-copy">

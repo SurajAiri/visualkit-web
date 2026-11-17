@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Logo from "./Logo";
+import TopBanner from "./TopBanner";
 import { DOCS_URL } from "@/lib/site";
 
 const LINKS = [
@@ -49,28 +50,31 @@ export default function Nav() {
   }, [open]);
 
   return (
-    <header ref={bar} className={"site-nav" + (stuck ? " is-stuck" : "") + (open ? " is-open" : "")}>
+    <div className={"site-header" + (stuck ? " is-stuck" : "") + (open ? " is-open" : "")}>
       <a className="skip-link" href="#main">Skip to content</a>
-      <Logo />
-      <button
-        className="mobile-menu"
-        aria-label={open ? "Close navigation" : "Open navigation"}
-        aria-expanded={open}
-        aria-controls="primary-nav"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {open ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
-      </button>
-      <nav id="primary-nav" className="nav-links" aria-label="Primary">
-        {LINKS.map((l) => (
-          <a key={l.href} href={l.href} aria-current={active === l.href ? "true" : undefined} onClick={() => setOpen(false)}>
-            {l.label}
+      <TopBanner />
+      <header ref={bar} className={"site-nav" + (stuck ? " is-stuck" : "") + (open ? " is-open" : "")}>
+        <Logo />
+        <button
+          className="mobile-menu"
+          aria-label={open ? "Close navigation" : "Open navigation"}
+          aria-expanded={open}
+          aria-controls="primary-nav"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
+        </button>
+        <nav id="primary-nav" className="nav-links" aria-label="Primary">
+          {LINKS.map((l) => (
+            <a key={l.href} href={l.href} aria-current={active === l.href ? "true" : undefined} onClick={() => setOpen(false)}>
+              {l.label}
+            </a>
+          ))}
+          <a className="nav-cta" href={DOCS_URL} target="_blank" rel="noreferrer">
+            Read the docs <ArrowUpRight size={15} aria-hidden />
           </a>
-        ))}
-        <a className="nav-cta" href={DOCS_URL} target="_blank" rel="noreferrer">
-          Read the docs <ArrowUpRight size={15} aria-hidden />
-        </a>
-      </nav>
-    </header>
+        </nav>
+      </header>
+    </div>
   );
 }

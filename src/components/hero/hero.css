@@ -3,7 +3,7 @@
             timeline       (full width, synced to the video)
    Motion:  JS writes ONE variable, --t (seconds). Every .k element is a paused CSS animation
             offset by (--at − --t), so the whole demo is a pure function of the clock. */
-.hx { --p: calc(var(--t) * 100% / 15); padding: clamp(104px, 11vw, 140px) var(--gutter) clamp(48px, 6vw, 80px); position: relative; }
+.hx { --p: calc(var(--t) * 100% / 15); padding: clamp(138px, 13vw, 174px) var(--gutter) clamp(48px, 6vw, 80px); position: relative; }
 .hx-grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); gap: clamp(20px, 3vw, 48px); align-items: center; }
 
 .hx-copy h1 { font: 700 clamp(2.7rem, 5.4vw, 4.9rem) / 1 var(--sans); letter-spacing: -0.05em; margin: 0; text-wrap: balance; }

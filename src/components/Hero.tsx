@@ -11,9 +11,9 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const tc = (t: number) => `${pad(Math.floor(t / 60))}:${pad(Math.floor(t) % 60)}:${pad(Math.floor((t % 1) * 30))}`;
 const stageAt = (t: number) => Math.max(0, STAGES.findIndex((s) => t >= s.a && t < s.b));
 
-/* The stage is drawn at a fixed logical size and scaled to fit, so it looks identical at any width.
-   Phones get a narrower logical canvas so text stays readable instead of shrinking to nothing. */
-const size = (w: number) => (w < 720 ? { w: 480, h: 480 } : { w: 1000, h: 424 });
+/* The whole timeline (ruler, tracks, playhead) is drawn on ONE fixed 1000×462 canvas and scaled
+   uniformly to the panel width, so it keeps the same layout and aspect ratio at every size. */
+const CANVAS_W = 1000;
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
@@ -27,7 +27,7 @@ export default function Hero() {
   const inView = useInView(root, 0.05);
   const [user, setUser] = useState(true);
   const [stage, setStage] = useState(0);
-  const [fit, setFit] = useState({ w: 1000, h: 400, s: 1 });
+  const [scale, setScale] = useState(0);
   const playing = user && inView && !reduced;
 
   /* single source of truth: write --t once per frame, CSS does the rest */
@@ -74,10 +74,7 @@ export default function Hero() {
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => {
-      const cw = e.contentRect.width, d = size(cw);
-      setFit({ ...d, s: cw / d.w });
-    });
+    const ro = new ResizeObserver(([e]) => setScale(e.contentRect.width / CANVAS_W));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -113,16 +110,14 @@ export default function Hero() {
       </div>
 
       <div className="hx-tl" role="img" aria-label="A 15-second timeline built in seven steps: a Python script, split and trim, keyframes, an audio equalizer, agents editing claimed regions, a fusion graph, and an adjustment clip over the finished edit. The playhead is synced to the demo video above.">
-        <div className="hx-in">
-          <div className="hx-ruler" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }} onPointerMove={scrub}>
-            {Array.from({ length: DUR }, (_, i) => <b key={i} style={{ left: (i / DUR) * 100 + "%" }}>{i}s</b>)}
-          </div>
-          <div className="hx-stagebox" ref={box} style={{ height: fit.h * fit.s }}>
-            <div className="hx-stage" style={{ width: fit.w, height: fit.h, transform: `scale(${fit.s})` }}>
-              <Stage key={stage} i={stage} />
+        <div className="hx-canvas" ref={box} style={{ visibility: scale ? "visible" : "hidden" }}>
+          <div className="hx-cv" style={{ transform: `scale(${scale || 1})` }}>
+            <div className="hx-ruler" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }} onPointerMove={scrub}>
+              {Array.from({ length: DUR }, (_, i) => <b key={i} style={{ left: (i / DUR) * 100 + "%" }}>{i}s</b>)}
             </div>
+            <div className="hx-stage"><Stage key={stage} i={stage} /></div>
+            <div className="hx-ph" aria-hidden="true"><span ref={flag}>00:00:00</span></div>
           </div>
-          <div className="hx-ph" aria-hidden="true"><span ref={flag}>00:00:00</span></div>
         </div>
       </div>
     </section>

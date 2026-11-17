@@ -1,14 +1,14 @@
 import { Fragment, type CSSProperties, type ReactNode } from "react";
-import { Check, Scissors } from "lucide-react";
+import { Check, Hand, Scissors } from "lucide-react";
 
 /* The demo video is 15 s, so the timeline is 15 s. Retime the stages here to match the final cut. */
 export const DUR = 15;
 export const STAGES = [
-  { id: "script", label: "script", a: 0, b: 2.4 },
-  { id: "cut", label: "split + trim", a: 2.4, b: 4.5 },
-  { id: "keys", label: "keyframes", a: 4.5, b: 6.8 },
-  { id: "audio", label: "audio eq", a: 6.8, b: 9.0 },
-  { id: "agents", label: "agents", a: 9.0, b: 11.4 },
+  { id: "script", label: "script", a: 0, b: 2.3 },
+  { id: "cut", label: "split · trim · move", a: 2.3, b: 4.9 },
+  { id: "keys", label: "keyframes", a: 4.9, b: 6.9 },
+  { id: "audio", label: "audio eq", a: 6.9, b: 8.9 },
+  { id: "agents", label: "agents", a: 8.9, b: 11.4 },
   { id: "fusion", label: "fusion", a: 11.4, b: 13.2 },
   { id: "effects", label: "effects", a: 13.2, b: 15 },
 ] as const;
@@ -43,18 +43,43 @@ const Call = ({ at, until, children }: { at: number; until?: number; children: s
 
 /* ── the one track-item look: icon · name · duration header, filmstrip or waveform body ──
    An effect replaces the name in the header (✦ Name) and the clip name moves to the middle. */
-const wave = (seed: number, n = 90) => {
-  let d = "";
-  for (let i = 0; i < n; i++) {
-    const a = (0.2 + 0.8 * Math.abs(Math.sin(i * 0.23 + seed) * Math.cos(i * 0.071 + seed * 2))) * (0.55 + 0.45 * Math.abs(Math.sin(i * 12.9898 + seed)));
-    d += `M${(i * 100) / n} ${10 - a * 9}V${10 + a * 9}`;
+type WaveKind = "voice" | "music" | "whoosh" | "hit" | "riser" | "pop" | "tone";
+const hash = (t: string) => [...t].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7);
+/* Each kind of audio gets its own envelope, noise floor and transient spikes, so no two look alike. */
+const wave = (seed: number, dur: number, kind: WaveKind) => {
+  let st = (seed % 2147483646) + 1;
+  const r = () => (st = (st * 16807) % 2147483647) / 2147483647;
+  const g = (x: number, c: number, w: number) => Math.exp(-(((x - c) / w) ** 2));
+  const words = Array.from({ length: Math.max(2, Math.round(dur * 1.7)) }, () => ({ c: r(), w: 0.01 + r() * 0.03, h: 0.3 + r() * 0.7, s: (r() - 0.5) * 0.04 }));
+  const ph = r() * 6.28;
+  const env = (x: number): number => {
+    switch (kind) {
+      case "voice": { let e = 0.03; for (const o of words) e = Math.max(e, o.h * (0.75 * g(x, o.c, o.w) + 0.55 * g(x, o.c + o.s, o.w * 0.7))); return e; }
+      case "music": { const p = (x * dur * 2 + ph) % 1; return 0.33 + 0.16 * Math.sin(x * dur * 1.7 + ph) + 0.1 * Math.sin(x * dur * 0.45 + ph * 2) + 0.3 * Math.exp(-((Math.min(p, 1 - p) / 0.09) ** 2)); }
+      case "whoosh": return 0.95 * Math.pow(Math.sin(Math.PI * Math.pow(x, 0.7)), 1.4);
+      case "hit": return x < 0.03 ? (x / 0.03) * 0.95 : 0.95 * Math.exp(-(x - 0.03) * 7) + 0.04;
+      case "riser": return 0.08 + 0.9 * Math.pow(x, 2.2);
+      case "pop": return 0.05 + 0.8 * g(x, 0.5, 0.09);
+      default: return 0.07;
+    }
+  };
+  const noise: Record<WaveKind, [number, number, number]> = { voice: [0.6, 0.4, 0.06], music: [0.76, 0.24, 0.03], whoosh: [0.52, 0.48, 0.02], hit: [0.58, 0.42, 0.05], riser: [0.45, 0.55, 0.03], pop: [0.65, 0.35, 0.03], tone: [0.45, 0.55, 0] };
+  const [nb, nr, ps] = noise[kind];
+  const N = Math.max(24, Math.round(dur * 45)), top: string[] = [], bot: string[] = [];
+  for (let i = 0; i <= N; i++) {
+    const x = i / N, e = env(x);
+    let n = nb + nr * r();
+    if (e > 0.12 && r() < ps) n *= 1.4; // transient spike
+    const up = Math.min(1, e * n), dn = Math.min(1, e * n * (0.86 + 0.14 * r()));
+    top.push(`${(x * 100).toFixed(2)} ${(10 - up * 9.2).toFixed(2)}`);
+    bot.push(`${(x * 100).toFixed(2)} ${(10 + dn * 9.2).toFixed(2)}`);
   }
-  return d;
+  return "M" + top.join("L") + "L" + bot.reverse().join("L") + "Z";
 };
 type Kind = "v" | "t" | "a";
-type C = { id: string; n: string; tone: string; a: number; b: number; k?: Kind; kd?: number[] };
+type C = { id: string; n: string; tone: string; a: number; b: number; k?: Kind; kd?: number[]; w?: WaveKind };
 type ClipProps = Omit<C, "id"> & { id?: string; at?: number; st?: CSSProperties; cls?: string; fx?: string; fxAt?: number; dur?: string; children?: ReactNode };
-function Clip({ n, tone, a, b, k = "v", kd, at, st, cls = "", fx, fxAt = 0, dur, children }: ClipProps) {
+function Clip({ id, n, tone, a, b, k = "v", kd, w = "music", at, st, cls = "", fx, fxAt = 0, dur, children }: ClipProps) {
   return (
     <div className={`cl t-${tone} kind-${k}${at != null ? " k" : ""} ${cls}`} style={{ left: P(a), width: P(b - a), ...(at != null ? K(at) : {}), ...st }}>
       <div className="in">
@@ -65,7 +90,7 @@ function Clip({ n, tone, a, b, k = "v", kd, at, st, cls = "", fx, fxAt = 0, dur,
           <em>{dur ?? (b - a).toFixed(1) + "s"}</em>
         </header>
         {k === "a"
-          ? <svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden><path d={wave(a * 3 + b)} vectorEffect="non-scaling-stroke" /></svg>
+          ? <svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden><path d={wave(hash(id ?? n) + Math.round(a * 100), b - a, w)} /></svg>
           : <i className="fl" />}
         {fx && <span className="mid k" style={K(fxAt, 0.25, { "--kf": "k-fade" })}>{n}</span>}
         {kd && kd.length > 0 && <><u className="kline" />{kd.map((x) => <u className="kd" key={x} style={{ left: x + "%" }} />)}</>}
@@ -78,15 +103,16 @@ const Scene = ({ a, children }: { a: number; children: ReactNode }) => <div clas
 
 /* ── the shared project every timeline scene works on (8 tracks, clips kept inside the 3 acts) ── */
 const c = (id: string, n: string, tone: string, a: number, b: number, k?: Kind, kd?: number[]): C => ({ id, n, tone, a, b, k, kd });
+const au = (id: string, n: string, tone: string, a: number, b: number, w: WaveKind): C => ({ id, n, tone, a, b, k: "a", w });
 const PROJ: { n: string; c: C[] }[] = [
   { n: "V5", c: [c("lens", "lens_dirt", "teal", 0.5, 2.4), c("speed", "speed_ramp", "lime", 6.0, 8.0, "v", [30, 62]), c("vhs", "vhs_overlay", "pink", 11.0, 13.4)] },
   { n: "V4", c: [c("title", "title_card", "violet", 0.4, 3.6, "t"), c("callout", "callout_arrow", "orange", 5.6, 7.2, "t"), c("lower", "lower_third", "pink", 10.3, 13.6, "t"), c("endc", "end_card", "violet", 13.9, 14.8, "t")] },
   { n: "V3", c: [c("light", "light_leak", "orange", 0.3, 1.9), c("glitch", "glitch_pack", "blue", 2.3, 3.6), c("prism", "prism_flare", "teal", 4.0, 4.9), c("grain", "film_grain", "orange", 6.2, 8.4), c("key", "green_key", "teal", 10.4, 13.2, "v", [25, 55, 82])] },
   { n: "V2", c: [c("city", "broll_16_city", "lime", 1.0, 4.8, "v", [20, 46, 72]), c("skate", "skate_ramp", "violet", 5.6, 9.4, "v", [30, 66]), c("drone", "drone_08", "blue", 10.4, 12.4)] },
   { n: "V1", c: [c("b13", "broll_13", "blue", 0.3, 4.8, "v", [18, 46, 80]), c("b16", "broll_16", "orange", 5.3, 9.7), c("b7", "broll_7", "blue", 10.1, 14.6, "v", [35, 70])] },
-  { n: "A1", c: [c("vo1", "vo_intro_t3", "teal", 0.3, 2.6, "a"), c("vo2", "vo_01", "teal", 3.0, 4.8, "a"), c("vo3", "vo_02_alt", "teal", 5.5, 7.6, "a"), c("vo4", "vo_03", "teal", 8.0, 9.6, "a"), c("vo5", "vo_outro", "teal", 10.2, 14.4, "a")] },
-  { n: "A2", c: [c("bgm1", "bgm_flute_drop", "sage", 0.3, 4.8, "a"), c("bgm2", "bgm_flute_drop", "sage", 5.3, 9.7, "a"), c("bgm3", "bgm_flute_drop", "sage", 10.1, 14.8, "a")] },
-  { n: "A3", c: [c("s1", "whoosh_01", "violet", 1.4, 2.3, "a"), c("s2", "hit_03", "orange", 3.7, 4.3, "a"), c("s3", "riser", "pink", 6.2, 7.0, "a"), c("s4", "pop", "lime", 8.6, 9.1, "a"), c("s5", "whoosh_02", "violet", 10.6, 11.6, "a"), c("s6", "impact", "orange", 12.6, 13.3, "a"), c("s7", "room_tone", "blue", 13.6, 14.8, "a")] },
+  { n: "A1", c: [au("vo1", "vo_intro_t3", "teal", 0.3, 2.6, "voice"), au("vo2", "vo_01", "teal", 3.0, 4.8, "voice"), au("vo3", "vo_02_alt", "teal", 5.5, 7.6, "voice"), au("vo4", "vo_03", "teal", 8.0, 9.6, "voice"), au("vo5", "vo_outro", "teal", 10.2, 14.4, "voice")] },
+  { n: "A2", c: [au("bgm1", "bgm_flute_drop", "sage", 0.3, 4.8, "music"), au("bgm2", "bgm_flute_drop", "sage", 5.3, 9.7, "music"), au("bgm3", "bgm_flute_drop", "sage", 10.1, 14.8, "music")] },
+  { n: "A3", c: [au("s1", "whoosh_01", "violet", 1.4, 2.3, "whoosh"), au("s2", "hit_03", "orange", 3.7, 4.3, "hit"), au("s3", "riser", "pink", 6.2, 7.0, "riser"), au("s4", "pop", "lime", 8.6, 9.1, "pop"), au("s5", "whoosh_02", "violet", 10.6, 11.6, "whoosh"), au("s6", "impact", "orange", 12.6, 13.3, "hit"), au("s7", "room_tone", "blue", 13.6, 14.8, "tone")] },
 ];
 type Over = Record<string, (c: C, at: number) => ReactNode>;
 function Project({ a, x = {}, fx = {}, top, children }: { a: number; x?: Over; fx?: Record<string, [string, number]>; top?: ReactNode; children?: ReactNode }) {
@@ -117,6 +143,13 @@ const Trim = (cl: C, at: number, nb: number, tt: number) => (
   <div className="wrap k" style={K(at, 0.3)}>
     <Clip {...cl} b={nb} cls="k" st={K(tt, 0.3, { "--kf": "k-w", "--w0": P(cl.b - cl.a), "--w1": P(nb - cl.a) })} />
     <i className="hatch k" style={{ left: P(nb), width: P(cl.b - nb), ...K(tt, 0.4, { "--kf": "k-hatch" }) }} />
+  </div>
+);
+
+/* slide a clip along its lane into free space (never overlapping a neighbour or leaving its region) */
+const Move = (cl: C, at: number, to: number, tm: number, d = 0.6) => (
+  <div className="wrap k" style={K(at, 0.3)}>
+    <Clip {...cl} cls="k" st={K(tm, d, { "--kf": "k-mv", "--x0": P(cl.a), "--x1": P(to), "--ez": "ease-in-out" })} />
   </div>
 );
 
@@ -162,20 +195,28 @@ function Script() {
   );
 }
 
-/* 2 ─ split + trim: one controller, one edit at a time ──────────────────── */
+/* 2 ─ split, trim, then move: ONE controller, one edit at a time (blade → hand) ───── */
 function Cut() {
   const a = STAGES[1].a;
+  const row = (lane: number) => Y(lane);
   return (
     <Scene a={a}>
       <div className="lns">
-        <Project a={a} x={{ b16: (cl, at) => Split(cl, at, 7.5, a + 0.62), b7: (cl, at) => Trim(cl, at, 13.2, a + 1.3) }}>
-          <div className="blade-pos k" style={K(a + 1.1, 0.5, { "--kf": "k-mv", "--x0": P(7.5), "--x1": P(13.2) })}>
-            <div className="blade k" style={K(a + 0.35, 0.25)}><span><Scissors size={12} /></span></div>
+        <Project a={a} x={{
+          b16: (cl, at) => Split(cl, at, 7.5, a + 0.6),
+          b7: (cl, at) => Trim(cl, at, 13.2, a + 1.45),
+          drone: (cl, at) => Move(cl, at, 11.9, a + 1.9, 0.5),
+        }}>
+          <div className="ctl k" style={K(a + 0.9, 1.5, { "--kf": "k-cur", "--ez": "ease-in-out",
+            "--x0": P(7.5), "--y0": row(4), "--x1": P(13.2), "--y1": row(4), "--x2": P(11.4), "--y2": row(3.5), "--x3": P(12.9), "--y3": row(3.5) })}>
+            <div className="blade k" style={K(a + 0.25, 0.25, { "--until": a + 1.8 })}><span><Scissors size={12} /></span></div>
+            <div className="hand k" style={K(a + 1.8, 0.2, { "--kf": "k-pop" })}><Hand size={13} /></div>
           </div>
         </Project>
       </div>
-      <Call at={a + 0.5} until={a + 1.2}>clip.split_at(ClipTime(2.2))</Call>
-      <Call at={a + 1.2}>clip.trim_tail(TimelineTime(13.2))</Call>
+      <Call at={a + 0.5} until={a + 1.35}>clip.split_at(ClipTime(2.2))</Call>
+      <Call at={a + 1.35} until={a + 1.9}>clip.trim_tail(TimelineTime(13.2))</Call>
+      <Call at={a + 1.9}>clip.move_to(TimelineTime(11.9))</Call>
     </Scene>
   );
 }
@@ -249,7 +290,7 @@ function Audio() {
   return (
     <Scene a={a}>
       <div className="eq">
-        <div className="eq-clip"><Clip n="bgm_flute_drop.mp3" tone="sage" a={0} b={DUR} k="a" dur="6.2s" st={{ left: 0, width: "100%" }} /></div>
+        <div className="eq-clip"><Clip id="bgm-eq" n="bgm_flute_drop.mp3" tone="sage" a={0} b={DUR} k="a" w="music" dur="6.2s" st={{ left: 0, width: "100%" }} /></div>
         <div className="eq-body">
           <div className="eq-panel">
             <div className="eq-plot">
@@ -279,9 +320,10 @@ function Audio() {
   );
 }
 
-/* 5 ─ agents own regions. clips never cross a region edge, agents never leave their own ── */
+/* 5 ─ agents own regions. every agent slides, trims/splits and adds an effect inside its OWN space ── */
 const Cur = ({ who, tone, at, p }: { who: string; tone: string; at: number; p: number[] }) => (
-  <div className={`cur t-${tone} k`} style={K(at, 1.5, { "--kf": "k-cur", "--x0": p[0] + "%", "--y0": Y(p[1]), "--x1": p[2] + "%", "--y1": Y(p[3]), "--x2": p[4] + "%", "--y2": Y(p[5]), "--ez": "ease-in-out" })}>
+  <div className={`cur t-${tone} k`} style={K(at, 1.8, { "--kf": "k-cur", "--ez": "ease-in-out",
+    "--x0": p[0] + "%", "--y0": Y(p[1]), "--x1": p[2] + "%", "--y1": Y(p[3]), "--x2": p[4] + "%", "--y2": Y(p[5]), "--x3": p[6] + "%", "--y3": Y(p[7]) })}>
     <svg width="13" height="15" viewBox="0 0 11 13"><path d="M1 1 L1 11 L4 8 L6.4 12.4 L8 11.6 L5.7 7.3 L9.6 7 Z" fill="currentColor" stroke="#101017" strokeWidth=".8" strokeLinejoin="round" /></svg>
     <span>{who}</span>
   </div>
@@ -296,16 +338,23 @@ function Agents() {
           <div key={rn} className={`reg t-${tone} k`} style={{ left: P(r0), width: P(r1 - r0), ...K(a + 0.05, 0.3) }}><b><i />{rn} · {ag}</b></div>
         ))}
         <Project a={a}
-          x={{ title: (cl, at) => Trim(cl, at, 2.9, a + 0.9), vhs: (cl, at) => Trim(cl, at, 12.4, a + 1.0), b16: (cl, at) => Split(cl, at, 7.5, a + 1.5) }}
-          fx={{ b13: ["GaussianBlurEffect", a + 1.6], b7: ["VignetteEffect", a + 1.7] }}>
-          <Cur who="intro-agent" tone="lime" at={a + 0.1} p={[6, 0.3, 24, 1.5, 12, 4.5]} />
-          <Cur who="outro-agent" tone="orange" at={a + 0.2} p={[94, 3, 89, 0.5, 80, 4.5]} />
-          <Cur who="agent-3" tone="teal" at={a + 0.7} p={[58, 6.8, 50, 4.5, 55, 2.7]} />
-          <div className="flash k" style={{ ...K(a + 1.5, 0.2, { "--kf": "k-flash" }), left: P(7.5) }} />
+          x={{
+            lens: (cl, at) => Move(cl, at, 1.6, a + 0.1),          // intro-agent: slide into free space in its region
+            title: (cl, at) => Trim(cl, at, 2.9, a + 1.3),
+            drone: (cl, at) => Move(cl, at, 11.9, a + 0.15),       // outro-agent
+            vhs: (cl, at) => Trim(cl, at, 12.4, a + 1.35),
+            callout: (cl, at) => Move(cl, at, 8.0, a + 0.2),       // agent-3 owns the free space between
+            b16: (cl, at) => Split(cl, at, 7.5, a + 1.4),
+          }}
+          fx={{ b13: ["GaussianBlurEffect", a + 1.9], b7: ["VignetteEffect", a + 1.95], skate: ["SpeedEffect", a + 2.0] }}>
+          <Cur who="intro-agent" tone="lime" at={a + 0.1} p={[10, 0.5, 17.33, 0.5, 24, 1.5, 12, 4.5]} />
+          <Cur who="outro-agent" tone="orange" at={a + 0.15} p={[76, 3.5, 86, 3.5, 89.3, 0.5, 80, 4.5]} />
+          <Cur who="agent-3" tone="teal" at={a + 0.2} p={[42.7, 1.5, 58.7, 1.5, 50, 4.5, 45, 3.5]} />
+          <div className="flash k" style={{ ...K(a + 1.4, 0.2, { "--kf": "k-flash" }), left: P(7.5) }} />
         </Project>
       </div>
       <div className="stat">
-        {([["lime", "intro-agent", "trim(title_card)", 1.3], ["orange", "outro-agent", "trim(vhs_overlay)", 1.4], ["teal", "agent-3", "split(broll_16)", 1.8]] as const).map(([tone, who, op, t]) => (
+        {([["lime", "intro-agent", "move · trim · effect", 1.9], ["orange", "outro-agent", "move · trim · effect", 1.95], ["teal", "agent-3", "move · split · effect", 2.0]] as const).map(([tone, who, op, t]) => (
           <span key={who} className={`pill t-${tone} k`} style={K(a + t, 0.25)}><i /><b>{who}</b>{op}</span>
         ))}
       </div>
@@ -337,7 +386,7 @@ function Fusion() {
           <Edge at={a + 1.25} />
           <FNode at={a + 1.35} tone="orange" name="vignette" sub="angle 0.42" cls="hot" />
           <Edge at={a + 1.5} />
-          <FNode at={a + 1.5} tone="sage" name="out_main" thumb={<><i className="th" /><i className="th fin k" style={K(a + 1.55, 0.4, { "--kf": "k-fade" })} /></>} />
+          <FNode at={a + 1.5} tone="sage" name="out_main" thumb={<><i className="th" /><i className="th fin k" style={K(a + 1.55, 0.4, { "--kf": "k-fade" })}><i className="vg" /></i></>} />
         </div>
         <div className="ln fu-lane"><Clip n="broll_7" tone="blue" a={0.4} b={14.6} kd={[18, 52, 84]} fx="fusion_backdrop_dag" fxAt={a + 1.3} at={a + 0.2} /></div>
       </div>

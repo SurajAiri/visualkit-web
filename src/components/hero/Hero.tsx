@@ -174,7 +174,12 @@ export default function Hero() {
     >
       <div className="hx-grid">
         <div className="hx-copy">
-          <h1>A native video editor for AI&nbsp;agents.</h1>
+          <h1>
+            <span className="hx-highlight" data-text="Agent First">
+              Agent First
+            </span>{" "}
+            Video Editor Library.
+          </h1>
           <p>
             Agents edit video as code: a whole cut in one atomic batch, many
             agents on one timeline, every change undoable. Open-source Python,

@@ -233,3 +233,34 @@
   .hx-frame { -webkit-mask-image: none; mask-image: none; }
   .hx-copy p { max-width: 46ch; }
 }
+
+.hx-highlight {
+  position: relative;
+  display: inline-block;
+  color: var(--text);
+}
+
+/* Green text overlay */
+.hx-highlight::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: var(--lime);
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  animation: hx-agent-wipe 0.9s ease-out 0.35s forwards;
+  pointer-events: none;
+}
+
+@keyframes hx-agent-wipe {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-highlight::after {
+    animation: none;
+    clip-path: none;
+  }
+}

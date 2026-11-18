@@ -2,17 +2,18 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
+import { preconnect, preload } from "react-dom";
 import { ArrowDown, Pause, Play } from "lucide-react";
 import { useInView, useReducedMotion } from "@/components/ui/useInView";
 import { DUR, Stage, STAGES } from "./HeroScenes";
-import { HERO_VIDEO } from "@/lib/site";
+import { CDN_ORIGIN, HERO_VIDEO } from "@/lib/site";
 import "./hero.css";
 
-const REST = 14.3; // reduced-motion users are parked on the finished timeline
+const REST = 14.99; // reduced-motion users are parked on the finished timeline (the last label has landed by ~15 s)
 const pad = (n: number) => String(n).padStart(2, "0");
 const tc = (t: number) =>
   `${pad(Math.floor(t / 60))}:${pad(Math.floor(t) % 60)}:${pad(Math.floor((t % 1) * 30))}`;
@@ -34,11 +35,19 @@ const lab = (x: number) =>
 const CANVAS_W = 1000;
 
 export default function Hero() {
+  // Open the CDN connection early and fetch the poster (the likely LCP element) at high priority.
+  preconnect(CDN_ORIGIN);
+  preload(HERO_VIDEO.poster, { as: "image", fetchPriority: "high" });
   const root = useRef<HTMLElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
   const flag = useRef<HTMLSpanElement>(null);
   const clock = useRef<HTMLSpanElement>(null);
   const box = useRef<HTMLDivElement>(null);
+  const stageEl = useRef<HTMLDivElement>(null);
+  const head = useRef<HTMLDivElement>(null);
+  const anims = useRef<Animation[]>([]); // the paused clock-driven animations of the scene on screen
+  const progressEls = useRef<HTMLElement[]>([]); // nodes that draw "progress so far" (keyframe curves)
+  const shown = useRef("");
   const t = useRef(0);
   const cur = useRef(0);
   const vd = useRef(DUR); // real video duration (s)
@@ -50,18 +59,44 @@ export default function Hero() {
   const [vdur, setVdur] = useState(DUR);
   const playing = user && inView && !reduced;
 
-  /* single source of truth: write --t once per frame, CSS does the rest */
+  /* single source of truth: every frame the clock is pushed straight into the scene's paused animations.
+     (Writing an inherited CSS variable on the root instead made the browser re-resolve the style of every
+     descendant 60 times a second, which was the single biggest cost on the page.) */
   const paint = useCallback((x: number) => {
-    root.current?.style.setProperty("--t", x.toFixed(3));
+    const ms = x * 1000;
+    const list = anims.current;
+    for (let n = 0; n < list.length; n++) list[n].currentTime = ms;
+    const pct = ((x / DUR) * 100).toFixed(3) + "%";
+    // transform, not left: moving the playhead never triggers layout
+    if (head.current) head.current.style.transform = `translateX(${((x / DUR) * CANVAS_W).toFixed(2)}px)`;
+    for (const el of progressEls.current) el.style.setProperty("--p", pct);
     const s = tc((x / DUR) * vd.current);
-    if (flag.current) flag.current.textContent = s;
-    if (clock.current) clock.current.textContent = s;
+    if (s !== shown.current) {
+      // the timecode only changes 30 times a second, so don't rewrite identical text 60 times a second
+      shown.current = s;
+      if (flag.current) flag.current.textContent = s;
+      if (clock.current) clock.current.textContent = s;
+    }
     const n = stageAt(x);
     if (n !== cur.current) {
       cur.current = n;
       setStage(n);
     }
   }, []);
+
+  /* A new scene mounts on each stage change: find its animations, then draw the current time before the browser paints. */
+  useLayoutEffect(() => {
+    const stageNode = stageEl.current;
+    if (!stageNode) return;
+    anims.current = document
+      .getAnimations()
+      .filter((a) => {
+        const target = (a.effect as KeyframeEffect | null)?.target;
+        return target instanceof Element && stageNode.contains(target) && a.playState !== "idle";
+      });
+    progressEls.current = Array.from(stageNode.querySelectorAll<HTMLElement>(".kf-row .on"));
+    paint(t.current);
+  }, [stage, paint]);
 
   const seek = useCallback(
     (s: number) => {
@@ -170,7 +205,6 @@ export default function Hero() {
       className="hx"
       id="top"
       ref={root}
-      style={{ ["--t" as string]: 0 } as CSSProperties}
     >
       <div className="hx-grid">
         <div className="hx-copy">
@@ -202,7 +236,7 @@ export default function Hero() {
               muted
               loop
               playsInline
-              preload="auto"
+              preload="metadata"
               aria-label="A 15-second video edited by an agent using VisualKit"
             >
               <source
@@ -261,10 +295,10 @@ export default function Hero() {
                 </b>
               ))}
             </div>
-            <div className="hx-stage">
+            <div className="hx-stage" ref={stageEl}>
               <Stage key={stage} i={stage} />
             </div>
-            <div className="hx-ph" aria-hidden="true">
+            <div className="hx-ph" ref={head} aria-hidden="true">
               <span ref={flag}>00:00:00</span>
             </div>
           </div>

@@ -16,17 +16,14 @@ export default function TypedScript() {
   const reduced = useReducedMotion();
   const [count, setN] = useState(0);
   const n = reduced ? FULL.length : count;
-  const started = useRef(false);
+  const typedSoFar = useRef(0); // survives effect cleanup, so typing resumes instead of stalling
 
   useEffect(() => {
-    if (reduced) return;
-    if (!inView || started.current) return;
-    started.current = true;
-    let i = 0;
+    if (reduced || !inView || typedSoFar.current >= FULL.length) return;
     const id = setInterval(() => {
-      i += 1;
-      setN(i);
-      if (i >= FULL.length) clearInterval(id);
+      typedSoFar.current += 1;
+      setN(typedSoFar.current);
+      if (typedSoFar.current >= FULL.length) clearInterval(id);
     }, 34);
     return () => clearInterval(id);
   }, [inView, reduced]);

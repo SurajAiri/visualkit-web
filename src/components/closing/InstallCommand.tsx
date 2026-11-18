@@ -1,5 +1,5 @@
 "use client";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Check, Copy } from "lucide-react";
 import { INSTALL, INSTALL_KEYS, type InstallKey } from "@/lib/site";
 
@@ -21,11 +21,16 @@ export default function InstallCommand({ className = "" }: { className?: string 
   const k = useInstallKey();
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 1600);
+    return () => clearTimeout(id);
+  }, [copied]);
+
   async function copy() {
     try {
       await navigator.clipboard.writeText(INSTALL[k]);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
     } catch {
       /* clipboard blocked: the command is still selectable on screen */
     }

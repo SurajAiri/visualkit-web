@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
 const target = resolve(process.argv[2] ?? "src/components/claimed-region/claims.ts");
-const { SCENARIOS, frameOf, inside, crosses, localSpec, editsOf, EPS = 1e-6 } = await import(pathToFileURL(target).href);
+const { SCENARIOS, frameOf, inside, crosses, localSpec, editsOf } = await import(pathToFileURL(target).href);
 
 let failures = 0;
 const fail = (sc, msg) => { failures++; console.log(`  FAIL [${sc.id}] ${msg}`); };
@@ -15,7 +15,7 @@ const words = (s) => s.trim().split(/\s+/).length;
 
 for (const sc of SCENARIOS) {
   console.log(`${sc.id}`);
-  const [R0, R1, R2, R3] = sc.ranges;
+  const [, R1, R2, R3] = sc.ranges;
   const spec = localSpec(sc);
   const edits = editsOf(spec);
   const gframe = (c, stage) => frameOf(c, stage === 2 ? 1 : stage); // shared lanes are frozen during WORK

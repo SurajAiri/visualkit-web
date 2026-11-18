@@ -31,7 +31,7 @@ const LD = {
 export default function Faq() {
   return (
     <section className="faq-section" id="faq">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LD).replace(/</g, "\\u003c") }} />
       <Reveal className="faq-head">
         <span className="section-kicker">08 / QUESTIONS</span>
         <h2>

@@ -76,9 +76,9 @@ export default function NotFoundPage() {
             <Link className="button-primary" href="/">
               Back to home <Undo2 size={16} aria-hidden />
             </Link>
-            <a className="button-text" href={DOCS_URL} target="_blank" rel="noreferrer">
+            <Link className="button-text" href={DOCS_URL}>
               Read the docs <ArrowUpRight size={16} aria-hidden />
-            </a>
+            </Link>
           </div>
         </div>
 

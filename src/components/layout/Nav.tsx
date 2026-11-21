@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Logo from "./Logo";
 import TopBanner from "./TopBanner";
@@ -70,9 +71,9 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
-          <a className="nav-cta" href={DOCS_URL} target="_blank" rel="noreferrer">
+          <Link className="nav-cta" href={DOCS_URL} onClick={() => setOpen(false)}>
             Read the docs <ArrowUpRight size={15} aria-hidden />
-          </a>
+          </Link>
         </nav>
       </header>
     </div>

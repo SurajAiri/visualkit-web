@@ -1,4 +1,5 @@
-export const DOCS_URL = "https://surajairi.github.io/visualkit/";
+export const DOCS_URL = "/docs";
+export const GITHUB_URL = "https://github.com/surajairi/visualkit";
 
 export const REQUIREMENTS = "Python 3.10 or later. FFmpeg for probing and rendering.";
 

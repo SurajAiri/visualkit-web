@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import TypedScript from "./TypedScript";
 import InstallCommand from "./InstallCommand";
@@ -17,9 +18,9 @@ export default function Closing() {
         </h2>
         <p>One install and one project file. Every edit an agent makes is checked, recorded, and easy to undo.</p>
         <div className="closing-actions">
-          <a className="button-primary" href={DOCS_URL} target="_blank" rel="noreferrer">
+          <Link className="button-primary" href={DOCS_URL}>
             Read the docs <ArrowUpRight size={16} aria-hidden />
-          </a>
+          </Link>
           <InstallCommand />
         </div>
         <TypedScript />

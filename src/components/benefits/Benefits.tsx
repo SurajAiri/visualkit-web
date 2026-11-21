@@ -51,7 +51,7 @@ export default function Benefits() {
         </Row>
 
         <Row n="02" tag="CODED CLIPS" icon={<Film size={13} aria-hidden />} title="Code becomes a clip."
-          href={DOCS_URL} cta="Read about coded clips" external
+          href={`${DOCS_URL}/assets#coded-visual-assets-html--remotion`} cta="Read about coded clips"
           body="Write visuals or audio in HyperFrames, Remotion, Manim, OpenCV or any code-to-media framework. VisualKit validates and compiles them into clips you can trim, keyframe and effect like any other.">
           <CodedClips />
         </Row>

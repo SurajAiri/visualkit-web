@@ -8,6 +8,7 @@
 from visualkit import VariableTarget
 
 with engine.edit(label="compound card"):
+    root_v1 = engine.create_track("visual", name="Main")
     seq = engine.create_sequence(name="Title Card")
     v_txt = engine.create_track("visual", name="Text", sequence_id=seq.id)
     txt = engine.add_text("Default", visual_track_id=v_txt.id, sequence_id=seq.id, start_ts=0.0, duration=3.0)
@@ -39,6 +40,7 @@ with engine.edit(label="compound card"):
 from visualkit import RepeaterLayout, VariableSpec, VariableTarget
 
 with engine.edit(label="repeater bullets"):
+    root_v1 = engine.create_track("visual", name="Main")
     seq = engine.create_sequence(name="Bullets")
     v_row = engine.create_track("visual", name="Row", sequence_id=seq.id)
     row = engine.add_text("Item", visual_track_id=v_row.id, sequence_id=seq.id, start_ts=0.0, duration=1.5)

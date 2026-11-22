@@ -99,7 +99,7 @@ visualkit director storyboard move sb_01... 2.0
 
 # Markers (time-anchored or item-anchored)
 visualkit director marker add 3.5 --title "Beat drop" --stage polish --storyboard-id sb_01...
-visualkit director marker add --item clp_01... --offset 1.2 --title "Audio pop" --stage polish
+visualkit director marker add --item <clip_id> --offset 1.2 --title "Audio pop" --stage polish
 visualkit director marker list --stage polish --status open
 visualkit director marker update mrk_01... --status resolved
 

@@ -25,6 +25,11 @@ VisualKit installs two command-line entrypoints:
 | `VISUALKIT_CACHE_DIR` | Coded-asset cache directory |
 | `VISUALKIT_CHROME` | Chrome/Chromium binary path for HTML/Remotion compilers |
 | `VISUALKIT_REMOTION_PROJECT` | Remotion project directory holding `node_modules` |
+| `VISUALKIT_REMOTION_BROWSER` | Existing Chrome/Chromium for Remotion to use instead of downloading its own |
+| `VISUALKIT_CHROME_ARGS` | Extra browser launch args for the HTML compiler, shell-split (e.g. `--no-sandbox` inside containers) |
+| `VISUALKIT_FONTS_DIR` | Managed-font cache directory (default `~/.visualkit/fonts`) |
+| `VISUALKIT_FONTS_OFFLINE` | Set to `1` to forbid font downloads; text rendering then needs a pre-populated font cache |
+| `VISUALKIT_SESSION_TOKEN` | Session token for the remote actor proxy (see *Remote actor proxy* below; not usable in this release) |
 
 ## Exit Codes
 
@@ -102,6 +107,19 @@ Shared flags (accepted before or after subcommands): `--assets-dir`, `--global-a
 | `visualkit director marker add\|list\|update\|delete` | Manage time-anchored and item-anchored review markers |
 | `visualkit director broken-refs` | Report broken asset/clip references or broken item anchors |
 
+### Additional Director's Cut commands
+
+| Command | Description |
+| --- | --- |
+| `visualkit director stage list` | Same listing as `director stages` (open marker/hint counts per stage) |
+| `visualkit director stage update SLUG [--title ...] [--description ...]` / `rename OLD NEW` / `reorder SLUG [SLUG ...]` | Edit, rename, or reorder stages |
+| `visualkit director stage remove SLUG` | Remove a stage; refused (exit `2`) while any marker or storyboard hint still references it |
+| `visualkit director storyboard list [--status ...] [--exclude-status ...] [--stage ...] [--author ...] [--tag ...] [--follow ripple\|fixed] [--parent-id ...] [--root-only] [--sequence-id ...] [--at T] [--start-ts T] [--end-ts T] [--search TEXT]` | Filtered flat listing of storyboards |
+| `visualkit director storyboard update ID [--start-ts ...] [--duration ...] [--follow ripple\|fixed] [--intent ...] [--title ...] [--status ...] [--author ...] [--color ...]` | Edit a storyboard. A storyboard's status is derived from its stage hints and children, so only `rejected`/`deferred` can be set directly |
+| `visualkit director storyboard delete ID [--children-policy error\|cascade\|reparent] [--keep-marker-links]` | Delete a storyboard |
+| `visualkit director storyboard hint remove ID STAGE` | Remove a stage hint from a storyboard |
+| `visualkit director marker delete ID` | Delete a marker |
+
 ## Preview & Render Commands
 
 | Command | Description |
@@ -112,6 +130,33 @@ Shared flags (accepted before or after subcommands): `--assets-dir`, `--global-a
 | `visualkit preview compare TARGET1 TARGET2 [...] [--frames 6] [-o PATH]` | Render a multi-target comparison grid |
 | `visualkit preview source ASSET [--mode path\|frame\|video\|grid] [--at 0.0] [-o PATH]` | Preview a raw source media asset directly |
 | `visualkit render OUTPUT [--branch ...] [--workspace ...] [--ref ...] [--resolution WxH] [--fps ...] [--audio-mode auto\|always\|never] [--allow-stale] [--dry-run] [--verbose]` | Render a settled project revision via FFmpeg |
+
+### Additional preview options
+
+`preview frame|video|grid|compare` also accept `--ref REF` (preview a revision/checkpoint instead of the branch head) and `--no-animated`. `grid`/`compare` accept `--rows`, `--cols`, `--img-format jpeg|png` and `--quality` (JPEG compression, 1-100); `grid` and `video` accept `--start`/`--end` to restrict the time window. Run `visualkit preview <sub> --help` for the exact set.
+
+### Additional asset commands and filters
+
+| Command | Description |
+| --- | --- |
+| `visualkit asset variant remove TARGET TAG` | Detach a variant from an asset |
+| `visualkit asset mount remove PREFIX` | Remove a mount; refused (exit `2`) while assets are still served through it (remove or `remap` them first) |
+| `visualkit asset find [--desc ...] [--name-glob ...] [--under VPATH] [--mime ...] [--has-visual\|--no-has-visual] [--has-audio\|--no-has-audio] [--min-height N] [--min-duration-ms N] [--max-duration-ms N] [--sort ...] [--limit N]` | Additional `find` filters beyond those shown in the Assets guide |
+| `visualkit asset register\|register-coded\|resolve\|path ... --params-file FILE` | Read coded-asset params from a JSON file instead of inline `--params` |
+
+### Additional actor commands
+
+| Command | Description |
+| --- | --- |
+| `visualkit actor media_tools probe INPUT` | One-line media summary (resolution, duration, codec, audio) |
+| `visualkit actor ffmpeg_lut luts [--query ...] [--tag ...]` / `download [--lut NAME]` | List or fetch LUTs |
+| `visualkit actor rembg models\|download\|remove\|install\|doctor` and `visualkit actor transcribe engines\|models\|run\|install\|doctor` | Optional ML actors. Not installed by default (`actors install rembg` / `transcribe` first); `remove` and `run` expose many model/device options, see `--help` |
+| `visualkit actor <slug> doctor` | Check one actor's dependencies |
+
+### Features not available in this release
+
+- **`visualkit actors search` and `visualkit actors sync`** are disabled: they exit `1` with "only built-in local actors are accessible", even though they still appear in `--help`.
+- **Remote actor proxy:** `visualkit auth token create|list|update|revoke` talk to a proxy server whose address is hardcoded to `http://127.0.0.1:8787` (deliberately not configurable, so a prompt-injected agent cannot redirect a session token). The production server has not launched, so without a local dummy server on that port these commands fail with `Unable to reach VisualKit proxy server` (exit `2`). Every built-in actor supports only `--runtime local` (`--runtime remote` is rejected up front with `supported: ['local']`).
 
 ## Coded Compiler Doctor (`visualkit-doctor`)
 

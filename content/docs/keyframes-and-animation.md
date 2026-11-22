@@ -40,7 +40,7 @@ with engine.edit(label="animate title"):
         Vec2d(x=0.0, y=60.0),
         layer=Layer.POST,
         interpolation=InterpolationMode.BEZIER,
-        bezier=BezierHandles(out_x=0.22, out_y=1.0, in_x=0.36, in_y=1.0),
+        bezier=BezierHandles(x1=0.22, y1=1.0, x2=0.36, y2=1.0),
     )
     clip.keyframe("transform.translation", 0.6, Vec2d(x=0.0, y=0.0), layer=Layer.POST)
 ```
@@ -48,6 +48,8 @@ with engine.edit(label="animate title"):
 ### Managing Existing Keyframes
 
 ```python
+from visualkit import Layer
+
 # Query keyframes on a property path
 kfs = clip.get_keyframes("transform.opacity", layer=Layer.POST)
 
@@ -69,7 +71,7 @@ with engine.edit(label="adjust fade"):
 - `InterpolationMode.LINEAR` — constant rate between keyframes
 - `InterpolationMode.HOLD` (step) — holds the previous value until the next keyframe
 - `InterpolationMode.EASE_IN`, `EASE_OUT`, `EASE_IN_OUT` — smooth standard easing
-- `InterpolationMode.BEZIER` — custom cubic Bezier via `BezierHandles(out_x, out_y, in_x, in_y)`
+- `InterpolationMode.BEZIER` — custom cubic Bezier via `BezierHandles(x1, y1, x2, y2)` (the two control points of a CSS-style `cubic-bezier(x1, y1, x2, y2)`; `x1`/`x2` must be in `[0, 1]`, `y1`/`y2` may overshoot)
 
 ## Built-in Motion Presets
 

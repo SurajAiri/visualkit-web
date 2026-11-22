@@ -8,7 +8,7 @@ You can preview any target at any level of granularity:
 
 - `"timeline"` — full composited root timeline
 - Track ID (e.g., `"trk_..."`) — isolated single track
-- Clip ID (e.g., `"clp_..."`) — isolated single clip
+- Clip ID (a bare ULID such as `01M80NYPJ1GV38FYJQVTPPTTX0`; clips have **no** `clp_` prefix, unlike `a_…` assets, `trk_…` tracks and `rev_…` revisions) — isolated single clip
 - Source asset ID or file path — raw source footage without timeline compositing
 
 ### CLI Preview Commands
@@ -18,7 +18,7 @@ All `visualkit preview` subcommands support `--db`, `--branch`, `--workspace` (o
 ```bash
 # 1. Single composited frame (PNG or JPEG; --transparent preserves alpha)
 visualkit preview frame --db project.visualkit --at 2.5 -o frame.png
-visualkit preview frame --db project.visualkit --target clp_01... --at 1.0 --transparent -o clip.png
+visualkit preview frame --db project.visualkit --target <clip_id> --at 1.0 --transparent -o clip.png
 
 # 2. Short video snippet
 visualkit preview video --db project.visualkit --start 4.0 --duration 3.0 -o snippet.mp4
@@ -27,7 +27,7 @@ visualkit preview video --db project.visualkit --start 4.0 --duration 3.0 -o sni
 visualkit preview grid --db project.visualkit --frames 6 --cols 3 -o sheet.jpg
 
 # 4. Multi-target side-by-side comparison grid (one row per candidate target)
-visualkit preview compare clp_01... clp_02... --db project.visualkit --frames 4 -o compare.jpg
+visualkit preview compare <clip_id_1> <clip_id_2> --db project.visualkit --frames 4 -o compare.jpg
 
 # 5. Raw source media preview (modes: path | frame | video | grid)
 visualkit preview source a_01... --db project.visualkit --mode frame --at 5.0 -o src_5s.png
@@ -69,13 +69,16 @@ visualkit render out.mp4 --db project.visualkit --dry-run --verbose --format jso
 visualkit render out.mp4 --db project.visualkit
 
 # Override resolution, fps, target revision/checkpoint, or audio mode
-visualkit render vertical.mp4 \
+visualkit checkpoint new v1-rough-cut --db project.visualkit   # --ref must name an existing checkpoint/revision
+visualkit render proxy.mp4 \
   --db project.visualkit \
   --ref v1-rough-cut \
-  --resolution 1080x1920 \
+  --resolution 640x360 \
   --fps 30 \
   --audio-mode auto
 ```
+
+`--resolution` **scales the finished canvas** (the project's `init --width/--height`) to the output size; it does not re-compose or reframe. Use it for same-aspect downscales or upscales (a 1920x1080 project rendered at 640x360). If the output aspect ratio differs from the canvas, the picture is stretched and the render reports a `WARN`. For a vertical or square deliverable, create the project with that canvas (`visualkit init ... --width 1080 --height 1920`) and lay the clips out for it.
 
 `--audio-mode` options:
 - `auto` (default) — includes audio if the timeline has any audio clips
@@ -84,8 +87,13 @@ visualkit render vertical.mp4 \
 
 ### Python Rendering
 
+`FfmpegRenderer` renders the **persisted** branch of the store, not your in-memory edits: call `engine.save()` first (`visualkit exec` does this for you at script exit). Rendering an unsaved project fails with a zero-duration error. `resolver` below is the `AssetResolver` the engine was opened with (`engine.resolver`).
+
 ```python
 from visualkit import FfmpegRenderer, RenderOptions
+
+engine.save(label="ready to render")
+resolver = engine.resolver
 
 opts = RenderOptions(
     resolution=(1920, 1080),

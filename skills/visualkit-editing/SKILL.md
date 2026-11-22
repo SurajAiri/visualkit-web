@@ -56,6 +56,7 @@ from visualkit import CropAlignment, FitMode, Geometry, Insets, LowerThirdParams
 with engine.edit(label="assemble base cut"):
     v1 = engine.create_track("visual", name="Video")
     v2 = engine.create_track("visual", name="Overlays")
+    v3 = engine.create_track("visual", name="Graphics")   # one track per simultaneous layer: clips on a track may not overlap
     a1 = engine.create_track("audio", name="Audio")
 
     # Place media (must specify both tracks for A/V assets, or explicitly pass include_audio=False / include_visual=False)
@@ -80,7 +81,7 @@ with engine.edit(label="assemble base cut"):
     title.fade_in(0.35).pop_in(from_scale=0.9, duration=0.35).fade_out(0.35)
 
     # Vector shape
-    bar = engine.add_shape(Geometry.rect(400, 8), visual_track_id=v2.id, start_ts=0.5, duration=3.0, fill="#38BDF8")
+    bar = engine.add_shape(Geometry.rect(400, 8), visual_track_id=v3.id, start_ts=0.5, duration=3.0, fill="#38BDF8")
 
     # Built-in motion-graphics template (title_card, lower_third, subtitle, callout, progress_ring)
     engine.apply_template("lower_third", LowerThirdParams(title="Maya Lin", subtitle="Host"), start_ts=1.0, duration=3.5, auto_tracks=True)
@@ -89,7 +90,7 @@ with engine.edit(label="assemble base cut"):
 ### Non-Linear Editing, Color, Speed & Keyframes
 
 - **Split / Trim / Move / Delete**: `clip.move(t)`, `clip.trim_head(new_start)`, `clip.trim_tail(new_end)`, `s = clip.split(TimelineTime(t)); left, right = s.left, s.right` (plain `float` is clip-relative `ClipTime`!), `engine.delete_clip(clip.id, linked=True|False)`, `engine.split_all(at)`, `engine.trim_head_all(at)`, `engine.trim_tail_all(at)`.
-- **Frame Snapping & Clocks**: Use `engine.snap(t)` on non-integer FPS timelines (e.g. `24000/1001`) to avoid frame-grid warnings. `clip.start_ts` is a `TimelineTime`; call `.to_plain_time()` before passing it as a duration.
+- **Frame Snapping & Clocks**: Use `engine.snap(t)` on non-integer FPS timelines (e.g. `24000/1001`) to avoid frame-grid warnings; `engine.snap()` preserves clock types (`engine.snap(TimelineTime(t))` returns `TimelineTime` for `clip.split(...)`). `clip.start_ts` is a `TimelineTime`; call `.to_plain_time()` before passing it as a duration.
 - **Ripple & Gaps**: `engine.ripple_insert(at, duration)`, `engine.ripple_delete(start, end)`, `engine.close_gap(track_id, at)`, `engine.shift_items(from_t, delta)`.
 - **Human color scales**: `clip.set_human_props(brightness=..., contrast=..., saturation=..., vibrance=..., hue=..., opacity=...)` — signed percent offsets (`0` = unchanged; `opacity` is `0–100`). Note: `FusionColorGradeNode` uses `[-1, 1]` floats instead.
 - **Speed**: `clip.set_speed(2.0, shrink_to_fit=True)` or `clip.set_speed_curve([SpeedPoint(at=0.0, speed=1.0, interpolation=SpeedInterpolation.LINEAR), SpeedPoint(at=2.0, speed=0.4)])`. Slowing a clip (`< 1.0`) does not auto-lengthen its timeline duration (use `ripple_insert` + `trim_tail`).

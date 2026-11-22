@@ -45,9 +45,13 @@ Every visual clip has a `transform` (`Transform`) with `translation`, `rotation`
 
 ### Positioning on the Canvas
 
-`Transform.translation` is relative to canvas center `(0, 0)`. Use `clip.place_at(x, y)` or `engine.canvas_pos(x, y)` to place a clip using top-left pixel coordinates:
+`Transform.translation` is relative to canvas center `(0, 0)`. Use `clip.place_at(x, y)` (or `engine.canvas_pos(x, y)`, which returns the matching `translation`) to position a clip's **anchor point** at canvas pixel `(x, y)` with the origin at the top-left of the canvas.
+
+- **`TextClip` / `ShapeClip`**: have an `anchor` (`(0.0, 0.0)` = top-left of the clip, `(0.5, 0.5)` = center, the default). Pass `anchor=` to `place_at` to choose which point lands on `(x, y)`.
+- **Media, coded, compound and template clips**: have no `anchor`; `place_at(x, y)` puts the clip's **center** at `(x, y)`, and passing `anchor=` raises `ClipTypeError`.
 
 ```python
+# `clip` is a TextClip or ShapeClip here (anchor= is only supported on those)
 with engine.edit(label="position overlay"):
     # Place top-left corner at canvas (80, 60)
     clip.place_at(80, 60, anchor=(0.0, 0.0))
@@ -131,8 +135,9 @@ with engine.edit(label="trim and split"):
     split_res = clip.split(TimelineTime(3.5))
     left, right = split_res.left, split_res.right
 
-    # Snap fractional timestamps onto the exact project FPS grid (helpful for 23.976/29.97 fps)
-    dur = engine.snap(3.5)  # returns exact Time; use start_ts.to_plain_time() to convert TimelineTime -> Time
+    # Snap fractional timestamps onto the exact project FPS grid (preserves TimelineTime/ClipTime)
+    dur = engine.snap(3.5)  # returns exact Time
+    split_res = clip.split(engine.snap(TimelineTime(3.5)))  # preserves TimelineTime
 
     # Split every clip across all unlocked tracks at t=5.0s
     engine.split_all(5.0)

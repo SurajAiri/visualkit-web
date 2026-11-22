@@ -49,7 +49,7 @@ visualkit asset duplicates
 
 ## Variants (Proxy Workflows)
 
-Attach alternative files (such as low-res editing proxies) to the same logical asset ID. VisualKit validates compatibility (duration/stream parity) automatically:
+Attach alternative files (such as low-res editing proxies) to the same logical asset ID. VisualKit validates compatibility automatically: the variant must have the same streams as the logical asset (e.g. a proxy without an audio track is rejected with `candidate has no audio stream`), a matching duration (within 60 ms), and a different resolution is accepted with a warning (it is scaled):
 
 ```bash
 visualkit asset variant add a_01... proxy /proj/proxies/interview_720p.mp4
@@ -59,9 +59,10 @@ visualkit asset variant list a_01...
 visualkit asset path a_01... --variant proxy
 ```
 
-When moving a media drive to a new path, remap the mount cleanly (with `--dry-run` validation first):
+When moving a media drive to a new path, remap the mount cleanly (with `--dry-run` validation first). The mount must already exist (`remap` fails with `no mount at ...` otherwise), and `remap` is blocked (exit `1`) unless every registered asset under it exists at the new location:
 
 ```bash
+visualkit asset mount add /archive /Volumes/OldDrive/footage   # once, if not already mounted
 visualkit asset mount remap /archive /Volumes/NewDrive/footage --dry-run
 visualkit asset mount remap /archive /Volumes/NewDrive/footage
 ```
@@ -108,6 +109,38 @@ visualkit-doctor install html_asset_compiler --dry-run
 
 ### 2. Register & Render a Coded Asset
 
+An HTML coded visual **describes itself**; no sidecar file is needed. `vk-duration` is required, and every parameter you intend to pass must be declared in a `vk-params` JSON block (passing an undeclared param fails with `Unknown param(s) ...; this asset declares: none`). Declared values are injected into the page as `window.VK_PARAMS`:
+
+```html
+<!-- /proj/graphics/lower_third.html -->
+<!doctype html>
+<html>
+<head>
+  <meta name="vk-duration" content="2">          <!-- seconds; required -->
+  <meta name="vk-dimension" content="1280x720">  <!-- optional -->
+  <meta name="vk-fps" content="12">              <!-- optional -->
+  <meta name="vk-transparent" content="true">    <!-- optional: RGBA overlay (.mov) -->
+  <script type="application/json" id="vk-params">
+    {"name": {"type": "string", "default": "Your Name"},
+     "role": {"type": "string", "default": "Your Role"}}
+  </script>
+  <style>
+    body { margin: 0; background: transparent; font-family: sans-serif; }
+    .bar { position: absolute; left: 60px; bottom: 80px; padding: 16px 28px; background: #0F172A; color: #fff;
+           border-left: 8px solid #F59E0B; animation: slide 1s ease-out both; }
+    .bar b { font-size: 44px } .bar span { font-size: 26px; color: #CBD5E1 }
+    @keyframes slide { from { transform: translateX(-300px); opacity: 0 } to { transform: none; opacity: 1 } }
+  </style>
+</head>
+<body>
+  <div class="bar"><b id="n"></b><br><span id="r"></span></div>
+  <script>n.textContent = VK_PARAMS.name; r.textContent = VK_PARAMS.role;</script>
+</body>
+</html>
+```
+
+CSS animations are sampled deterministically per frame; for JS-driven animation define `window.vkSeek(t)` (seconds). Then register it:
+
 ```bash
 # Register an HTML coded visual with default JSON parameters
 visualkit asset register-coded /proj/lower_third \
@@ -116,12 +149,58 @@ visualkit asset register-coded /proj/lower_third \
   --params '{"name": "Maya Lin", "role": "Director"}' \
   -d "Animated lower third"
 
-# Resolve (compiles & caches on demand; supports per-call --params overrides)
+# Resolve metadata + source path (the video is compiled and cached lazily, at preview/render time)
 visualkit asset resolve /proj/lower_third --params '{"name": "Alex Rivera"}'
 visualkit asset source-path /proj/lower_third
 ```
 
-In Python scripts, pass `params={...}` to `engine.add_media(...)` and compile explicitly with `engine.compile_coded(clip_id)` when needed.
+In Python scripts, pass the asset **ID** (as printed by `asset register-coded` / `asset find`, not the `/proj/...` path) to `engine.add_media(...)` together with `params={...}`; per-call params override the registered defaults. Compile explicitly with `engine.compile_coded(clip_id)` when needed.
+
+### 3. Remotion Compositions
+
+A Remotion coded visual is a React component (`.tsx`) plus a **sidecar JSON next to it with the same name** (`hello.tsx` + `hello.vk.json`) that declares size, timing and params. Unlike HTML, the component does not describe itself. Props arrive as normal React props, and `fps`, `width`, `height` and `duration` (seconds) come from the sidecar.
+
+```tsx
+// /proj/graphics/hello.tsx
+import React from "react";
+import {AbsoluteFill, useCurrentFrame} from "remotion";
+
+export default function Hello({title, background}: {title: string; background: string}) {
+  const frame = useCurrentFrame();
+  return (
+    <AbsoluteFill style={{backgroundColor: background, color: "#fff", justifyContent: "center", alignItems: "center", fontSize: 24}}>
+      {title} {frame}
+    </AbsoluteFill>
+  );
+}
+```
+
+```json
+// /proj/graphics/hello.vk.json
+{
+  "fps": 10, "width": 320, "height": 180, "duration": 1,
+  "params": {
+    "title":      {"type": "string", "default": "Hello"},
+    "background": {"type": "string", "default": "#ff0000"}
+  }
+}
+```
+
+Set it up once (needs Node.js and npm; the browser is downloaded unless you point at an existing Chrome/Chromium), then register and use it exactly like an HTML asset:
+
+```bash
+visualkit-doctor install remotion --remotion-project ~/.cache/visualkit/remotion-test-project
+export VISUALKIT_REMOTION_PROJECT=~/.cache/visualkit/remotion-test-project
+# optional, when Remotion cannot download its own browser (offline / sandbox):
+export VISUALKIT_REMOTION_BROWSER=/path/to/chrome-or-chromium
+
+visualkit asset register-coded /proj/hello_rm \
+  --source /proj/graphics/hello.tsx \
+  --compiler remotion \
+  --params '{"title": "Remotion OK", "background": "#7C3AED"}'
+```
+
+Place it with `engine.add_media("<asset id>", ..., params={"background": "#16A34A"})`; per-call params override the registered defaults and are what gets compiled. Compiled output is cached by content hash, so unchanged params do not recompile.
 
 ## Using `AssetResolver` with `exec`, `preview`, and `render`
 

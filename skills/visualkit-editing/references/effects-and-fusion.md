@@ -23,6 +23,8 @@ with engine.edit(label="clip effects"):
 Apply an effect stack to all tracks below over `[start_ts, start_ts + duration)`:
 
 ```python
+from visualkit import VignetteEffect
+
 with engine.edit(label="adjustment grade"):
     v_adj = engine.create_track("visual", name="Grade")
     engine.add_adjustment_clip(
@@ -39,6 +41,7 @@ A `FusionGraphEntity` must contain at least one node, must be acyclic, and must 
 
 ```python
 with engine.edit(label="fusion chroma composite"):
+    v1 = engine.create_track("visual", name="Comp")
     fg = engine.create_fusion_graph(name="Keyed Comp")
     fg.add_input_node(id="subject", port="subject", kind="visual")
     fg.add_generator_node(id="bg", kind="solid", color="#0F172A")

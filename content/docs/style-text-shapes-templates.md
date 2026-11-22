@@ -1,6 +1,6 @@
 # Style, Text, Shapes & Templates
 
-VisualKit includes a full vector styling system for typography, shapes, gradients, strokes, drop shadows, bundled fonts, and reusable parameterized motion-graphics templates.
+VisualKit includes a full vector styling system for typography, shapes, gradients, strokes, drop shadows, managed Noto fonts, and reusable parameterized motion-graphics templates.
 
 > For crisp vector rasterization of text, shapes, and templates, install the `style` extra: `uv add "visualkit[style]"` (installs `skia-python`).
 
@@ -19,7 +19,7 @@ with engine.edit(label="styled title"):
         visual_track_id=v1.id,
         start_ts=0.0,
         duration=4.0,
-        font_family="Inter",
+        font_family="Noto Sans",
         font_size=84,
         font_weight=700,
         color="#FFFFFF",
@@ -35,16 +35,25 @@ with engine.edit(label="styled title"):
 
 Update text content later with `headline.set_text("New Headline")`.
 
-### Bundled Fonts
+### Managed Fonts
 
-VisualKit ships font discovery helpers so typography renders identically across machines:
+Text is rendered only with VisualKit's managed SIL OFL Noto faces; **system fonts are never used**, so typography is identical across machines. The font binaries are **not shipped in the wheel**: each face is downloaded on first use into `~/.visualkit/fonts/` (override with `VISUALKIT_FONTS_DIR`) and reused across projects. The first text render therefore needs network access and downloads roughly 27 MB (most of it the color-emoji font).
+
+For offline or sandboxed environments, pre-populate the cache once while online, then block further downloads:
 
 ```python
-from visualkit import BUNDLED_FAMILIES, ensure_font, ensure_all_fonts
+from visualkit import BUNDLED_FAMILIES, ensure_all_fonts, ensure_font
 
-print(BUNDLED_FAMILIES)
-font_path = ensure_font("Inter")
+print(sorted(BUNDLED_FAMILIES))                    # ['Noto Color Emoji', 'Noto Sans', 'Noto Sans Devanagari']
+font_path = ensure_font("NotoSans-Regular.ttf")    # takes a managed *file name*, not a family name
+ensure_all_fonts()                                 # {filename: local_path} for every managed face
 ```
+
+```bash
+export VISUALKIT_FONTS_OFFLINE=1   # fail fast instead of downloading
+```
+
+`font_family` must be one of `BUNDLED_FAMILIES` (any other value fails at preview/render time). To use your own typeface, register a `.ttf` / `.otf` / `.ttc` file as a FONT asset and reference it with `TextStyle(font_asset_id=...)`; WOFF/WOFF2 are not supported.
 
 ## Shape Clips (`add_shape`)
 
@@ -104,7 +113,7 @@ with engine.edit(label="add speaker lower third"):
         duration=4.0,
         auto_tracks=True,
     )
-    print("Created clips:", [c.id for c in res.clips])
+    print("Created clips:", {role: c.id for role, c in res.clips.items()})  # keyed by role
 ```
 
 You can also register custom templates with `visualkit.register_template(...)`.

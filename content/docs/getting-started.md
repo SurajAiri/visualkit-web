@@ -1,39 +1,8 @@
 # Getting Started
 
-This guide gets you from zero to a first video. The fastest route is **Agent Skills**: install VisualKit, drop the official skills into your coding agent (Claude Code, Codex, Cursor, Gemini CLI), and describe the edit you want. The rest of the page covers the library and CLI that those skills drive, for when you want to write edits yourself.
+This guide walks through installing VisualKit, verifying system dependencies, and creating, previewing, and rendering your first video project.
 
-## Start with Agent Skills
-
-### 1. Install the library
-
-See [Requirements](#requirements) and [Installation](#installation) below.
-
-### 2. Add the skills
-
-Put them in your agent's skills folder. `visualkit-editing` teaches the agent the editing loop, exact signatures, and common traps. `visualkit-collab` covers checkpoints, branches, and multi-agent claimed regions:
-
-```bash
-# Claude Code shown. Use .agents/skills for Codex, .cursor/skills for Cursor, ~/.gemini/skills for Gemini CLI
-mkdir -p .claude/skills
-curl -fsSL https://visualkit.hyekai.com/downloads/skills/visualkit-skills-all.zip -o vk-skills.zip
-unzip -qo vk-skills.zip -d .claude/skills
-rm vk-skills.zip
-```
-
-### 3. Ask the agent for the edit
-
-Name the skill so it loads, point it at your footage, and ask for a preview before any render:
-
-```text
-Use the visualkit-editing skill to cut /proj/interview.mp4 into a 15s teaser
-with a title card. Preview before you render.
-```
-
-Prefer to be walked through it? Follow [Getting Started (Human)](getting-started-human.md) for the full step-by-step: importing skills, handing over assets, printing the directory, and reviewing the agent's work. The skills, their files, and per-agent folders are listed under [Agent Skills](/docs/skills).
-
-## Using the Library Directly
-
-Installing the library is needed on both routes. After that, the rest of this page is the CLI and Python workflow that agents run on your behalf. Work through it if you want to write `visualkit exec` scripts or drive `VisualkitEngine` yourself.
+Prefer to direct an AI coding agent instead of writing the Python yourself? See [Getting Started (Human)](getting-started-human.md).
 
 ## Requirements
 
@@ -179,7 +148,7 @@ with VisualkitEngine.open("demo.visualkit", fps=30, resolution=(1920, 1080)) as 
 
 ## Next Steps
 
-- Hand the editing to an agent with the [Agent Skills](/docs/skills), or follow [Getting Started (Human)](getting-started-human.md).
+- Let an AI agent drive the edits for you with [Getting Started (Human)](getting-started-human.md).
 - Understand clocks, transactions, and validation in [Core Concepts](core-concepts.md).
 - Import footage and manage proxy variants in [Assets & Coded Visuals](assets.md).
 - Explore [Clips & Timeline Editing](clips-and-timeline.md) and [Director's Cut](director-cut.md).

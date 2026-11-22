@@ -49,7 +49,7 @@ Skills are folders with a `SKILL.md` that the agent reads when a task matches. U
 | Claude Code | `.claude/skills/` |
 | Codex | `.agents/skills/` (or `~/.agents/skills/` for every project) |
 | Cursor | `.cursor/skills/` |
-| Gemini CLI | `~/.gemini/skills/` |
+| Gemini CLI | `.gemini/skills/` (or `~/.gemini/skills/` for every project) |
 
 ```bash
 # Claude Code shown. Swap the folder for your agent.
@@ -59,13 +59,15 @@ unzip -qo vk-skills.zip -d .claude/skills
 rm vk-skills.zip
 ```
 
+Working from a clone of the VisualKit repository instead? The skills are in the [`skills/`](https://github.com/SurajAiri/visualkit/tree/main/skills) folder at the repository root, so copy `skills/visualkit-editing` and `skills/visualkit-collab` into your agent's skills folder rather than downloading the bundle.
+
 Restart the agent, or open a new session, so it rescans its skills. Then check:
 
 ```text
 Which VisualKit skills do you have available?
 ```
 
-It should name `visualkit-editing` and `visualkit-collab`. If it does not, the files are in the wrong folder for that agent. You can also download each skill separately from [Agent Skills](/docs/skills).
+It should name `visualkit-editing` and `visualkit-collab`. If it does not, the files are in the wrong folder for that agent. You can also download each skill on its own: [`visualkit-editing.zip`](https://visualkit.hyekai.com/downloads/skills/visualkit-editing.zip) and [`visualkit-collab.zip`](https://visualkit.hyekai.com/downloads/skills/visualkit-collab.zip).
 
 ## 3. Give the Agent Your Assets
 
@@ -141,6 +143,6 @@ For parallel work, each agent can edit its own time range through a claimed regi
 
 ## Next Steps
 
-- Browse the two skills and what each covers in [Agent Skills](/docs/skills).
+- Browse the two skills and what each covers in the [`skills/`](https://github.com/SurajAiri/visualkit/tree/main/skills) folder.
 - Learn the vocabulary the agent will use in [Core Concepts](core-concepts.md).
 - Plan longer edits with [Director's Cut](director-cut.md).

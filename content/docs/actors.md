@@ -8,14 +8,16 @@
 # List all available built-in and local actors
 visualkit actors list
 
-# Inspect typed parameters, surfaces, and cached models for one actor
-visualkit actors info ffmpeg_lut
+# Inspect one actor: text lists parameter names; --format json adds types, defaults, ranges, surfaces, and models
+visualkit actors info ffmpeg_lut --format json
 visualkit actors models rembg
 
 # Check local runtime readiness and model weights
 visualkit actors doctor
 visualkit actors doctor rembg
 ```
+
+`actors doctor` exits `1` (validation error) when any checked actor is not ready. The optional ML actors (`rembg`, `transcribe`) are not installed by default, so a plain `visualkit actors doctor` on a fresh machine reports them as `[FAIL]` and exits `1`; pass a slug (e.g. `visualkit actors doctor ffmpeg_lut`) to check only the actors you need.
 
 ## The 6 Built-in Actors
 
@@ -41,13 +43,13 @@ visualkit actor local_broll generate "city night" --duration 3.0 --color "#1E293
 # Extract preview frames and detect scene cuts from raw footage
 visualkit actor media_tools extract-frames raw.mp4 --out-dir ./frames --every 1.0 --max-frames 8
 visualkit actor media_tools detect-scenes raw.mp4 --threshold 0.35 --format json
-visualkit actor media_tools trim raw.mp4 trimmed.mp4 --start 2.0 --duration 5.0
+visualkit actor media_tools trim raw.mp4 -o trimmed.mp4 --start 2.0 --duration 5.0
 
 # Apply a LUT to an image or video at 60% intensity
 visualkit actor ffmpeg_lut apply clip.mp4 -o graded.mp4 --lut teal_orange --intensity 0.6
 
 # Chroma-key green screen with alpha-only feathering
-visualkit actor bg_remove key green_screen.mp4 keyed.mov --key-color "#00FF00" --feather 2.0
+visualkit actor bg_remove remove green_screen.mp4 -o keyed.mov --key-color "#00FF00" --feather 2.0
 
 # Auto-register produced outputs directly into AssetResolver
 visualkit actor --save-asset --assets-dir ./assets local_broll generate "ocean" --duration 2.0

@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { DocPageData } from "@/lib/docs";
 import { docHref } from "@/lib/docs";
-import { GITHUB_URL } from "@/lib/site";
+import GithubLink from "@/components/ui/GithubLink";
 import MarkdownView from "./MarkdownView";
 
 export default function DocPageView({ doc }: { doc: DocPageData }) {
-  const editUrl = `${GITHUB_URL}/blob/main/docs/${doc.meta.file}`;
+  const editPath = `/blob/main/docs/${doc.meta.file}`;
 
   return (
     <article>
@@ -14,10 +14,10 @@ export default function DocPageView({ doc }: { doc: DocPageData }) {
       <MarkdownView blocks={doc.parsed.blocks} />
 
       <div className="docs-page-meta">
-        <a href={editUrl} target="_blank" rel="noreferrer" className="docs-edit-link">
+        <GithubLink path={editPath} className="docs-edit-link">
           <span>Edit this page on GitHub</span>
           <ArrowUpRight size={14} aria-hidden />
-        </a>
+        </GithubLink>
       </div>
 
       <nav className="docs-pager" aria-label="Pagination">

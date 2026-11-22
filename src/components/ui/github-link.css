@@ -1,0 +1,21 @@
+/* GithubLink: trigger reset + "coming soon" dialog. Zero-specificity reset so each call site's own class wins. */
+:where(.gh-trigger) { background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+
+.gh-dialog { margin: auto; padding: 0; width: min(92vw, 420px); background: transparent; border: 0; color: #e4e2ee; overflow: visible; }
+.gh-dialog::backdrop { background: rgba(8, 8, 12, 0.72); backdrop-filter: blur(6px); }
+.gh-dialog[open] { animation: gh-pop 0.28s var(--ease, ease-out); }
+.gh-dialog[open]::backdrop { animation: gh-fade 0.28s ease-out; }
+body:has(.gh-dialog[open]) { overflow: hidden; }
+
+.gh-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 34px 30px 28px; background: var(--panel, #1a1921); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.9); }
+.gh-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: var(--lime, #c5fb63); background: rgba(197, 251, 99, 0.12); border: 1px solid rgba(197, 251, 99, 0.3); }
+.gh-kicker { margin-top: 18px; font: 500 10.5px/1 var(--mono, ui-monospace, monospace); letter-spacing: 0.14em; color: #8f8c9d; }
+.gh-title { margin-top: 12px; font: 650 21px/1.25 var(--sans, system-ui, sans-serif); letter-spacing: -0.02em; color: #f3f2f8; }
+.gh-body { margin-top: 12px; font: 400 14px/1.6 var(--sans, system-ui, sans-serif); color: var(--muted, #a8a6b3); }
+.gh-close { margin-top: 24px; padding: 13px 26px; border: 0; border-radius: 6px; background: var(--lime, #c5fb63); color: var(--bg, #0e0d13); font: 650 14px/1 var(--sans, system-ui, sans-serif); cursor: pointer; transition: transform 0.2s var(--ease, ease-out), box-shadow 0.2s var(--ease, ease-out); }
+.gh-close:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -12px rgba(197, 251, 99, 0.6); }
+.gh-close:active { transform: none; }
+
+@keyframes gh-pop { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes gh-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .gh-dialog[open], .gh-dialog[open]::backdrop { animation: none; } }

@@ -5,7 +5,8 @@ import DocsShell from "@/components/docs/DocsShell";
 import CodeBlock from "@/components/docs/CodeBlock";
 import { DOC_SECTIONS, docHref, getDocNeighbors, getDocsSearchIndex } from "@/lib/docs";
 import type { TocItem } from "@/lib/markdown";
-import { GITHUB_URL, HUMAN_GUIDE_URL, SKILLS_BUNDLE_URL } from "@/lib/site";
+import GithubLink from "@/components/ui/GithubLink";
+import { HUMAN_GUIDE_URL, SKILLS_BUNDLE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Agent Skills · VisualKit Docs",
@@ -116,15 +117,10 @@ export default function DocsSkillsPage() {
                 <FileCode2 size={14} aria-hidden />
                 <span>SKILL.md</span>
               </a>
-              <a
-                href={`${GITHUB_URL}/tree/main/skills/visualkit-editing`}
-                target="_blank"
-                rel="noreferrer"
-                className="skill-btn"
-              >
+              <GithubLink path="/tree/main/skills/visualkit-editing" className="skill-btn">
                 <span>GitHub</span>
                 <ArrowUpRight size={13} aria-hidden />
-              </a>
+              </GithubLink>
             </div>
           </section>
 
@@ -172,15 +168,10 @@ export default function DocsSkillsPage() {
                 <FileCode2 size={14} aria-hidden />
                 <span>SKILL.md</span>
               </a>
-              <a
-                href={`${GITHUB_URL}/tree/main/skills/visualkit-collab`}
-                target="_blank"
-                rel="noreferrer"
-                className="skill-btn"
-              >
+              <GithubLink path="/tree/main/skills/visualkit-collab" className="skill-btn">
                 <span>GitHub</span>
                 <ArrowUpRight size={13} aria-hidden />
-              </a>
+              </GithubLink>
             </div>
           </section>
         </div>

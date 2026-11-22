@@ -8,7 +8,7 @@ import Logo from "@/components/layout/Logo";
 import Footer from "@/components/layout/Footer";
 import type { DocNavSection, SearchDocEntry } from "@/lib/docs";
 import type { TocItem } from "@/lib/markdown";
-import { GITHUB_URL } from "@/lib/site";
+import GithubLink from "@/components/ui/GithubLink";
 
 function docHref(slug: string): string {
   return slug ? `/docs/${slug}` : "/docs";
@@ -118,15 +118,10 @@ export default function DocsShell({
             <ArrowLeft size={14} aria-hidden />
             <span>Home</span>
           </Link>
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="docs-header-link is-desktop-only"
-          >
+          <GithubLink className="docs-header-link is-desktop-only">
             <span>GitHub</span>
             <ArrowUpRight size={14} aria-hidden />
-          </a>
+          </GithubLink>
         </div>
       </header>
 

@@ -1,7 +1,11 @@
 export const DOCS_URL = "/docs";
-export const GITHUB_URL = "https://github.com/surajairi/visualkit";
+/* The public repo, no trailing slash, e.g. "https://github.com/surajairi/visualkit".
+   While this is null the code isn't public yet: every GitHub link on the site (docs header, "Edit this page",
+   skill cards) opens a "we're open-sourcing soon" dialog instead. Set the URL and they all become real links. */
+export const GITHUB_URL: string | null = null;
 
-export const REQUIREMENTS = "Python 3.10 or later. FFmpeg for probing and rendering.";
+export const REQUIREMENTS =
+  "Python 3.10 or later. FFmpeg for probing and rendering.";
 
 export const INSTALL = {
   uv: "uv add visualkit",
@@ -28,7 +32,8 @@ export const HERO_VIDEO = {
    Each target is the folder an agent harness scans for skills; the command unpacks the bundle there. */
 export const SKILLS_URL = "/docs/skills";
 export const HUMAN_GUIDE_URL = "/docs/getting-started-human";
-export const SKILLS_BUNDLE_URL = "https://visualkit.hyekai.com/downloads/skills/visualkit-skills-all.zip";
+export const SKILLS_BUNDLE_URL =
+  "https://visualkit.hyekai.com/downloads/skills/visualkit-skills-all.zip";
 
 export const SKILL_TARGETS = [
   { key: "claude", label: "Claude Code", dir: ".claude/skills" },

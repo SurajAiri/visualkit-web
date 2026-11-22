@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   preload(assetUrl(sansLatin), { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   preload(assetUrl(monoLatin), { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

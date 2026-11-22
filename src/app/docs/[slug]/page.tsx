@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DocsShell from "@/components/docs/DocsShell";
@@ -24,11 +25,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function DocSlugPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+async function DocSlugContent({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const doc = getDocBySlug(slug);
   if (!doc) notFound();
@@ -38,5 +35,31 @@ export default async function DocSlugPage({
     <DocsShell sections={DOC_SECTIONS} searchIndex={searchIndex} toc={doc.parsed.toc}>
       <DocPageView doc={doc} />
     </DocsShell>
+  );
+}
+
+function DocsLoadingShell() {
+  const searchIndex = getDocsSearchIndex();
+  return (
+    <DocsShell sections={DOC_SECTIONS} searchIndex={searchIndex} toc={[]}>
+      <div className="docs-skeleton" aria-busy="true" aria-label="Loading documentation">
+        <div className="docs-skel-kicker" />
+        <div className="docs-skel-title" />
+        <div className="docs-skel-line" />
+        <div className="docs-skel-line is-short" />
+      </div>
+    </DocsShell>
+  );
+}
+
+export default function DocSlugPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return (
+    <Suspense fallback={<DocsLoadingShell />}>
+      <DocSlugContent params={params} />
+    </Suspense>
   );
 }

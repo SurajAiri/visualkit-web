@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import TypedScript from "./TypedScript";
-import InstallCommand from "./InstallCommand";
+import TypedPrompt from "./TypedPrompt";
+import SkillInstall from "./SkillInstall";
 import Reveal from "@/components/ui/Reveal";
-import { DOCS_URL, REQUIREMENTS } from "@/lib/site";
+import { HUMAN_GUIDE_URL, INSTALL, REQUIREMENTS, SKILLS_URL } from "@/lib/site";
 import "./closing.css";
 
 export default function Closing() {
@@ -16,15 +16,20 @@ export default function Closing() {
           Let the agents<br />
           <span>focus on the edit.</span>
         </h2>
-        <p>One install and one project file. Every edit an agent makes is checked, recorded, and easy to undo.</p>
+        <p>Give your agent the VisualKit skills and describe the video. Every edit it makes is checked, recorded, and easy to undo.</p>
         <div className="closing-actions">
-          <Link className="button-primary" href={DOCS_URL}>
-            Read the docs <ArrowUpRight size={16} aria-hidden />
+          <Link className="button-primary" href={SKILLS_URL}>
+            Get the skills <ArrowUpRight size={16} aria-hidden />
           </Link>
-          <InstallCommand />
+          <Link className="closing-secondary" href={HUMAN_GUIDE_URL}>
+            Getting started (Human) <ArrowUpRight size={15} aria-hidden />
+          </Link>
         </div>
-        <TypedScript />
-        <small className="closing-req">{REQUIREMENTS}</small>
+        <SkillInstall />
+        <TypedPrompt />
+        <small className="closing-req">
+          {REQUIREMENTS} Skills drive the library, so install it too: <code>{INSTALL.uv}</code> or <code>{INSTALL.pip}</code>.
+        </small>
       </Reveal>
     </section>
   );

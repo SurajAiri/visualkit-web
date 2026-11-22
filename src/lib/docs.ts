@@ -38,7 +38,14 @@ export const DOC_SECTIONS: DocNavSection[] = [
     items: [
       { slug: "", file: "README.md", title: "Overview", shortTitle: "Overview", section: "Start Here" },
       { slug: "getting-started", file: "getting-started.md", title: "Getting Started", shortTitle: "Getting Started", section: "Start Here" },
+      { slug: "getting-started-human", file: "getting-started-human.md", title: "Getting Started (Human)", shortTitle: "Getting Started (Human)", section: "Start Here" },
       { slug: "core-concepts", file: "core-concepts.md", title: "Core Concepts", shortTitle: "Core Concepts", section: "Start Here" },
+    ],
+  },
+  {
+    title: "AI Agents",
+    items: [
+      { slug: "skills", file: "", title: "Agent Skills", shortTitle: "Agent Skills", section: "AI Agents" },
     ],
   },
   {
@@ -81,6 +88,7 @@ export function getDocBySlug(slug: string): DocPageData | null {
   const index = ALL_DOC_ITEMS.findIndex((item) => item.slug === slug);
   if (index === -1) return null;
   const meta = ALL_DOC_ITEMS[index];
+  if (!meta.file) return null;
   const filePath = path.join(DOCS_DIR, meta.file);
   if (!fs.existsSync(filePath)) return null;
   const raw = fs.readFileSync(filePath, "utf8");
@@ -93,13 +101,39 @@ export function getDocBySlug(slug: string): DocPageData | null {
   };
 }
 
+export function getDocNeighbors(slug: string): { prev: DocNavItem | null; next: DocNavItem | null } {
+  const index = ALL_DOC_ITEMS.findIndex((item) => item.slug === slug);
+  if (index === -1) return { prev: null, next: null };
+  return {
+    prev: index > 0 ? ALL_DOC_ITEMS[index - 1] : null,
+    next: index < ALL_DOC_ITEMS.length - 1 ? ALL_DOC_ITEMS[index + 1] : null,
+  };
+}
+
 export function getAllDocSlugs(): string[] {
-  return ALL_DOC_ITEMS.filter((item) => item.slug !== "").map((item) => item.slug);
+  return ALL_DOC_ITEMS.filter((item) => item.slug !== "" && item.file !== "").map((item) => item.slug);
 }
 
 export function getDocsSearchIndex(): SearchDocEntry[] {
   const entries: SearchDocEntry[] = [];
   for (const item of ALL_DOC_ITEMS) {
+    if (!item.file) {
+      entries.push({
+        slug: item.slug,
+        href: docHref(item.slug),
+        title: item.title,
+        section: item.section,
+        description: "Download official VisualKit Agent Skills (visualkit-editing and visualkit-collab) for Claude Code, Codex, Cursor, and Gemini CLI.",
+        headings: [
+          { id: "available-skills", text: "Available Skills", level: 2 },
+          { id: "visualkit-editing", text: "visualkit-editing", level: 3 },
+          { id: "visualkit-collab", text: "visualkit-collab", level: 3 },
+          { id: "quick-install", text: "Quick Install", level: 2 },
+        ],
+        plainText: "visualkit-editing visualkit-collab agent skills download zip SKILL.md install skills folder Claude Code Cursor Gemini CLI Codex",
+      });
+      continue;
+    }
     const filePath = path.join(DOCS_DIR, item.file);
     if (!fs.existsSync(filePath)) continue;
     const raw = fs.readFileSync(filePath, "utf8");

@@ -23,3 +23,22 @@ export const HERO_VIDEO = {
   mp4: `${CLD}/${ID}.mp4`,
   poster: `${CLD}/so_0,w_1280/${ID}.jpg`,
 } as const;
+
+/* Agent Skills: the bundle the landing page and the docs both point at.
+   Each target is the folder an agent harness scans for skills; the command unpacks the bundle there. */
+export const SKILLS_URL = "/docs/skills";
+export const HUMAN_GUIDE_URL = "/docs/getting-started-human";
+export const SKILLS_BUNDLE_URL = "https://visualkit.hyekai.com/downloads/skills/visualkit-skills-all.zip";
+
+export const SKILL_TARGETS = [
+  { key: "claude", label: "Claude Code", dir: ".claude/skills" },
+  { key: "codex", label: "Codex", dir: ".agents/skills" },
+  { key: "cursor", label: "Cursor", dir: ".cursor/skills" },
+  { key: "gemini", label: "Gemini CLI", dir: "~/.gemini/skills" },
+] as const;
+
+export type SkillTargetKey = (typeof SKILL_TARGETS)[number]["key"];
+
+export function skillInstallCommand(dir: string): string {
+  return [`mkdir -p ${dir}`, `curl -fsSL ${SKILLS_BUNDLE_URL} -o vk-skills.zip`, `unzip -qo vk-skills.zip -d ${dir}`, "rm vk-skills.zip"].join("\n");
+}

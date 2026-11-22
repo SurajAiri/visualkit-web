@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { highlightCode } from "@/lib/highlight";
 
 export default function CodeBlock({ lang, value }: { lang: string; value: string }) {
   const [copied, setCopied] = useState(false);
+  const lines = useMemo(() => highlightCode(value, lang), [value, lang]);
 
   const onCopy = async () => {
     try {
@@ -31,7 +33,24 @@ export default function CodeBlock({ lang, value }: { lang: string; value: string
         </button>
       </div>
       <pre className="docs-code-pre">
-        <code>{value}</code>
+        <code>
+          {lines.map((tokens, li) => (
+            <span key={li} className="docs-code-line">
+              {tokens.length === 0
+                ? "\n"
+                : tokens.map((tok, ti) =>
+                    tok.kind === "plain" ? (
+                      <span key={ti}>{tok.value}</span>
+                    ) : (
+                      <span key={ti} className={`tok-${tok.kind}`}>
+                        {tok.value}
+                      </span>
+                    ),
+                  )}
+              {li < lines.length - 1 ? "\n" : ""}
+            </span>
+          ))}
+        </code>
       </pre>
     </div>
   );

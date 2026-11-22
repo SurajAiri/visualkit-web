@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { highlightCode } from "@/lib/highlight";
+import { track } from "@/lib/analytics";
 
 export default function CodeBlock({ lang, value }: { lang: string; value: string }) {
   const [copied, setCopied] = useState(false);
@@ -12,6 +13,7 @@ export default function CodeBlock({ lang, value }: { lang: string; value: string
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
+      track("docs_code_copy");
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       // Clipboard may be unavailable in restricted contexts

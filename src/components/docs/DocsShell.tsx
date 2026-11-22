@@ -9,6 +9,7 @@ import Footer from "@/components/layout/Footer";
 import type { DocNavSection, SearchDocEntry } from "@/lib/docs";
 import type { TocItem } from "@/lib/markdown";
 import GithubLink from "@/components/ui/GithubLink";
+import { track } from "@/lib/analytics";
 
 function docHref(slug: string): string {
   return slug ? `/docs/${slug}` : "/docs";
@@ -107,7 +108,10 @@ export default function DocsShell({
           <button
             type="button"
             className="docs-search-btn"
-            onClick={() => setSearchOpen(true)}
+            onClick={() => {
+              setSearchOpen(true);
+              track("docs_search_open");
+            }}
             aria-label="Search documentation"
           >
             <Search size={14} aria-hidden />
@@ -197,6 +201,7 @@ export default function DocsShell({
               <input
                 type="search"
                 className="docs-modal-input"
+                data-clarity-mask="true"
                 placeholder="Search docs, CLI commands, Fusion nodes, actors…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

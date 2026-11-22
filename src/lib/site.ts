@@ -1,4 +1,17 @@
 export const DOCS_URL = "/docs";
+
+/* Microsoft Clarity project ID (clarity.microsoft.com -> Settings -> Overview). It is public by design (it ships in the
+   page), so a default is fine; set NEXT_PUBLIC_CLARITY_ID to point a preview/staging deploy at a different project, or
+   to an empty string to switch Clarity off. Clarity only loads in production builds, never on localhost. */
+export const CLARITY_ID: string =
+  process.env.NEXT_PUBLIC_CLARITY_ID ?? "zhho16wm55";
+
+/* Cookie banner (components/analytics/ConsentBanner). While true, visitors choose Accept or Decline and that choice is passed
+   to Clarity, which sets no cookies until they accept. Set to false only if you are sure no visitor needs a choice. */
+export const CONSENT_BANNER = true;
+export const PRIVACY_URL = "/privacy";
+/* Shown on the privacy page as the place to send privacy questions. Set it before launch (e.g. "privacy@yourdomain.com"). */
+export const CONTACT_EMAIL: string | null = null;
 /* The public repo, no trailing slash, e.g. "https://github.com/surajairi/visualkit".
    While this is null the code isn't public yet: every GitHub link on the site (docs header, "Edit this page",
    skill cards) opens a "we're open-sourcing soon" dialog instead. Set the URL and they all become real links. */

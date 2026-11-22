@@ -6,6 +6,8 @@ import "@fontsource-variable/martian-mono";
 import sansLatin from "@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2";
 import monoLatin from "@fontsource-variable/martian-mono/files/martian-mono-latin-wght-normal.woff2";
 import "./globals.css";
+import Clarity from "@/components/analytics/Clarity";
+import ConsentBanner from "@/components/analytics/ConsentBanner";
 
 const TITLE = "VisualKit: A native video editor for AI agents";
 // Set NEXT_PUBLIC_SITE_URL (e.g. https://visualkit.dev) so share-image URLs are absolute. Vercel's production URL is used if present.
@@ -44,7 +46,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   preload(assetUrl(monoLatin), { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ConsentBanner />
+        <Clarity />
+      </body>
     </html>
   );
 }

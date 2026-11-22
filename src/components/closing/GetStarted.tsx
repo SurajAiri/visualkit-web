@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import Link from "next/link";
 import { ArrowUpRight, Bot, Check, Copy, Terminal } from "lucide-react";
 import { useInView, useReducedMotion } from "@/components/ui/useInView";
+import { slug, track } from "@/lib/analytics";
 import {
   HUMAN_GUIDE_URL,
   INSTALL,
@@ -62,6 +63,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      track(`copy_${slug(label)}`);
     } catch {
       /* clipboard blocked: the command is still selectable on screen */
     }
@@ -146,7 +148,7 @@ function Results({ items, show }: { items: string[]; show: boolean }) {
 }
 
 export default function GetStarted() {
-  const [mode, setMode] = useState<Mode>("agent");
+  const [mode, setModeState] = useState<Mode>("agent");
   const [target, setTarget] = useState<SkillTargetKey>("claude");
   const [pm, setPm] = useState<InstallKey>("uv");
   const ref = useRef<HTMLDivElement>(null);
@@ -159,6 +161,19 @@ export default function GetStarted() {
   const dir = (SKILL_TARGETS.find((t) => t.key === target) ?? SKILL_TARGETS[0]).dir;
   const skillCmd = skillInstallCommand(dir);
   const codeCmd = `${INSTALL[pm]}\n${INIT_CMD}`;
+
+  function setMode(m: Mode) {
+    setModeState(m);
+    track(`start_with_${m}`);
+  }
+  function pickTarget(k: SkillTargetKey) {
+    setTarget(k);
+    track(`skill_target_${k}`);
+  }
+  function pickPm(k: InstallKey) {
+    setPm(k);
+    track(`install_with_${k}`);
+  }
 
   function onSwitchKey(e: KeyboardEvent) {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -203,7 +218,7 @@ export default function GetStarted() {
             <Step
               n={1}
               title="Add the skills"
-              tools={<Pills label="Agent" items={SKILL_TARGETS} value={target} onChange={setTarget} />}
+              tools={<Pills label="Agent" items={SKILL_TARGETS} value={target} onChange={pickTarget} />}
             >
               <CodeWell text={skillCmd} label="Copy skill install commands">
                 <pre className="gs-code"><code>{skillCmd}</code></pre>
@@ -219,7 +234,7 @@ export default function GetStarted() {
             <Step
               n={1}
               title="Install and start a project"
-              tools={<Pills label="Package manager" items={INSTALL_KEYS.map((k) => ({ key: k, label: k }))} value={pm} onChange={setPm} />}
+              tools={<Pills label="Package manager" items={INSTALL_KEYS.map((k) => ({ key: k, label: k }))} value={pm} onChange={pickPm} />}
             >
               <CodeWell text={codeCmd} label="Copy install commands">
                 <pre className="gs-code"><code>{codeCmd}</code></pre>

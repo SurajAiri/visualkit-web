@@ -2,6 +2,7 @@
 import { useId, useRef, type ReactNode } from "react";
 import { GitBranch } from "lucide-react";
 import { GITHUB_URL } from "@/lib/site";
+import { track } from "@/lib/analytics";
 import "./github-link.css";
 
 /**
@@ -23,7 +24,7 @@ export default function GithubLink({
 
   if (GITHUB_URL) {
     return (
-      <a className={className} href={`${GITHUB_URL}${path}`} target="_blank" rel="noreferrer">
+      <a className={className} href={`${GITHUB_URL}${path}`} target="_blank" rel="noreferrer" onClick={() => track("github_click")}>
         {children}
       </a>
     );
@@ -32,7 +33,10 @@ export default function GithubLink({
   // Plain divs inside the dialog (not h2/p) so nothing inherits the docs prose styles it may be rendered inside.
   return (
     <>
-      <button type="button" className={`gh-trigger ${className ?? ""}`} onClick={() => dialog.current?.showModal()}>
+      <button type="button" className={`gh-trigger ${className ?? ""}`} onClick={() => {
+        dialog.current?.showModal();
+        track("github_click_coming_soon");
+      }}>
         {children}
       </button>
       <dialog

@@ -6,6 +6,7 @@ import CodeBlock from "@/components/docs/CodeBlock";
 import { DOC_SECTIONS, docHref, getDocNeighbors, getDocsSearchIndex } from "@/lib/docs";
 import type { TocItem } from "@/lib/markdown";
 import GithubLink from "@/components/ui/GithubLink";
+import TrackedAnchor from "@/components/analytics/TrackedAnchor";
 import { HUMAN_GUIDE_URL, SKILLS_BUNDLE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -55,14 +56,15 @@ export default function DocsSkillsPage() {
               Includes <code>visualkit-editing</code> (with 3 deep-dive references) + <code>visualkit-collab</code>
             </div>
           </div>
-          <a
+          <TrackedAnchor
+            event="skills_download_all"
             href="/downloads/skills/visualkit-skills-all.zip"
             download="visualkit-skills-all.zip"
             className="button-primary skills-dl-primary"
           >
             <FolderArchive size={16} aria-hidden />
             <span>Download all skills (.zip)</span>
-          </a>
+          </TrackedAnchor>
         </div>
 
         <h2 id="available-skills">

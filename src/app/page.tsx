@@ -10,6 +10,7 @@ import ClaimSection from "@/components/claimed-region/ClaimSection";
 import MoreFeatures from "@/components/more-features/MoreFeatures";
 import Faq from "@/components/faq/Faq";
 import Closing from "@/components/closing/Closing";
+import LaunchGate from "@/components/countdown/LaunchGate";
 
 export default function Home() {
   return (
@@ -25,7 +26,10 @@ export default function Home() {
         <ClaimSection />
         <MoreFeatures />
         <Faq />
-        <Closing />
+        {/* Countdown until LAUNCH_AT (lib/site.ts), then Get started. Remove the wrapper to drop the countdown. */}
+        <LaunchGate>
+          <Closing />
+        </LaunchGate>
       </main>
       <Footer />
     </>

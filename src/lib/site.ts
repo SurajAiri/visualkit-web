@@ -4,6 +4,11 @@ export const DOCS_URL = "/docs";
    skill cards) opens a "we're open-sourcing soon" dialog instead. Set the URL and they all become real links. */
 export const GITHUB_URL: string | null = null;
 
+/* Library release countdown (components/countdown). ISO time in UTC. Before it, the landing page shows a countdown in
+   place of "Get started" and the top banner says the library is coming soon; after it, the normal section and the beta
+   banner appear on their own. Set to null to turn the countdown off. To delete it for good, see the README. */
+export const LAUNCH_AT: string | null = "2026-11-22T16:15:00Z";
+
 export const REQUIREMENTS =
   "Python 3.10 or later. FFmpeg for probing and rendering.";
 

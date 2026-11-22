@@ -1,0 +1,69 @@
+/* Library-release countdown: section + banner chip. Self-contained; delete with the folder. */
+
+/* ── banner chip ── */
+.top-banner-timer { display: inline-flex; align-items: center; gap: 6px; margin-left: 4px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; background: rgba(197, 251, 99, 0.1); border: 1px solid rgba(197, 251, 99, 0.35); color: var(--lime); font: 500 0.95em/1.5 var(--mono); font-variant-numeric: tabular-nums; transition: background 0.2s, border-color 0.2s; }
+.top-banner-timer:hover { background: rgba(197, 251, 99, 0.2); border-color: rgba(197, 251, 99, 0.6); }
+
+/* ── section ── */
+.cd-section { position: relative; background: var(--bg); padding: 128px var(--gutter) 120px; text-align: center; overflow: hidden; }
+.cd-section::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 14px; color: rgba(255, 255, 255, 0.16);
+  background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 72px) top / 100% 14px no-repeat, repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 12px) top / 100% 6px no-repeat; }
+.cd-grid { position: absolute; inset: 0; opacity: 0.6; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 56px);
+  -webkit-mask-image: radial-gradient(70% 80% at 50% 50%, #000, transparent); mask-image: radial-gradient(70% 80% at 50% 50%, #000, transparent); }
+.cd-content { position: relative; display: flex; flex-direction: column; align-items: center; }
+.cd-section .section-kicker { margin-bottom: 26px; }
+.cd-section h2 { font-size: clamp(2.8rem, 5.2vw, 4.75rem); line-height: 1.02; }
+.cd-section h2 span { color: var(--lime); }
+.cd-content > p { margin-top: 24px; max-width: 520px; font-size: 0.9375rem; color: var(--muted); }
+
+/* ── clock ── */
+.cd-clock { position: relative; margin-top: 52px; display: flex; align-items: flex-start; justify-content: center; gap: 12px; font-size: clamp(2.5rem, 11vw, 5.6rem); }
+.cd-clock::before { content: ""; position: absolute; inset: -40% -10%; z-index: -1; pointer-events: none; background: radial-gradient(50% 50% at 50% 50%, rgba(197, 251, 99, 0.1), transparent 70%); }
+.cd-unit { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.cd-digits { display: flex; padding: 0.16em 0.22em 0.12em; border-radius: 0.2em; background: linear-gradient(180deg, #1c1b25, #14131b); border: 1px solid var(--line); box-shadow: 0 30px 60px -34px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+.cd-digit { display: inline-block; width: 0.64em; height: 1.05em; overflow: hidden; text-align: center; font: 600 1em/1.05 var(--mono); font-variant-numeric: tabular-nums; color: #f3f2f8; }
+.cd-digit-in { display: block; animation: cd-roll 0.45s var(--ease, cubic-bezier(0.2, 0.8, 0.2, 1)); }
+.cd-unit.is-accent .cd-digit { color: var(--lime); }
+.cd-label { font: 500 10.5px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: #8f8c9d; }
+.cd-sep { align-self: flex-start; padding-top: 0.2em; font: 600 1em/1.05 var(--mono); color: #55536a; animation: cd-blink 1s steps(1) infinite; }
+
+/* ── mini timeline ── */
+.cd-tl { position: relative; margin-top: 48px; width: min(100%, 620px); display: grid; gap: 8px; text-align: left; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel, #1a1921); box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.85); }
+.cd-tl-row { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 10px; }
+.cd-tl-name { font: 500 10px/1 var(--mono); color: #77748a; }
+.cd-ruler { display: flex; justify-content: space-between; height: 22px; padding-top: 2px; font: 500 9.5px/1 var(--mono); color: #77748a; letter-spacing: 0.08em;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 10%) bottom / 100% 6px no-repeat, repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 2%) bottom / 100% 3px no-repeat; }
+.cd-ruler b { font-weight: 500; }
+.cd-lane { height: 34px; border-radius: 6px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.05); overflow: hidden; }
+.cd-clip { height: 100%; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 5px; font: 500 11px/1 var(--mono); white-space: nowrap; overflow: hidden; }
+.cd-clip.is-done { width: 100%; background: rgba(197, 251, 99, 0.14); border: 1px solid rgba(197, 251, 99, 0.3); color: var(--lime); }
+.cd-clip.is-build { width: calc(var(--p) * 100%); min-width: 2px; color: #14131b; border: 1px solid rgba(197, 251, 99, 0.55);
+  background: repeating-linear-gradient(135deg, #c5fb63 0 10px, #aee34d 10px 20px); background-size: 28.28px 28.28px; animation: cd-stripes 0.9s linear infinite; transition: width 1s linear; }
+
+/* playhead: spans every row, sits over the lane column */
+.cd-ph-wrap { position: absolute; top: 14px; bottom: 16px; left: 56px; right: 16px; pointer-events: none; }
+.cd-ph { position: absolute; top: 0; bottom: 0; left: calc(var(--p) * 100%); width: 0; transition: left 1s linear; }
+.cd-ph::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.55); }
+.cd-ph i { position: absolute; top: -2px; left: -6px; width: 12px; height: 10px; background: #fff; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.cd-flag { position: absolute; top: 0; bottom: 0; right: 0; width: 0; border-right: 1px dashed rgba(197, 251, 99, 0.6); }
+
+.cd-meta { margin-top: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; font: 400 12px/1.5 var(--mono); color: #b9b6c8; }
+.cd-meta em { font-style: normal; color: #77748a; }
+.cd-cta { margin-top: 30px; }
+
+@keyframes cd-roll { from { transform: translateY(55%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cd-blink { 50% { opacity: 0.25; } }
+@keyframes cd-stripes { to { background-position: 28.28px 0; } }
+
+@media (max-width: 560px) {
+  .cd-section { padding: 100px var(--gutter) 90px; }
+  .cd-clock { gap: 6px; margin-top: 40px; }
+  .cd-clock.has-days { font-size: 9vw; }
+  .cd-hide-sm { display: none; }
+  .cd-tl { padding: 12px 12px 14px; }
+  .cd-ph-wrap { left: 52px; right: 12px; top: 12px; bottom: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cd-digit-in, .cd-sep, .cd-clip.is-build { animation: none; }
+  .cd-ph, .cd-clip.is-build { transition: none; }
+}

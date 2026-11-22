@@ -14,7 +14,7 @@ const FEATURES: [string, string][] = [
   ["Compound clips", "A whole mini-edit packaged as one reusable clip."],
   ["Template clips", "Repeat a group of clips with the same look and different content per copy."],
   ["Asset resolver", "Clips use asset IDs, so a moved file is relinked once and descriptions make footage searchable."],
-  ["Actors and proxy keys", "Agents use AI video services without ever handling the secret keys."],
+  ["Previews", "Render one frame, a short clip or a contact sheet to check the look before the full render."],
   ["Dry runs", "Run everything against the current state and print the change report, writing nothing."],
   ["Run records", "Every run, failed ones included, is kept with its script and report."],
   ["JSON output", "Every command takes --format json, so agents read the same report you do."],

@@ -4,12 +4,14 @@ import type { DocPageData } from "@/lib/docs";
 import { docHref } from "@/lib/docs";
 import GithubLink from "@/components/ui/GithubLink";
 import MarkdownView from "./MarkdownView";
+import HashScroll from "./HashScroll";
 
 export default function DocPageView({ doc }: { doc: DocPageData }) {
   const editPath = `/blob/main/docs/${doc.meta.file}`;
 
   return (
     <article>
+      <HashScroll />
       <span className="docs-kicker">{doc.meta.section}</span>
       <MarkdownView blocks={doc.parsed.blocks} />
 

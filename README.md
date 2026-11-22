@@ -15,7 +15,7 @@ node --experimental-strip-types scripts/check-claims.mjs   # claimed-region data
 |---|---------|--------|----|
 |   | Hero (timeline + demo video) | `components/hero` | `top` |
 | 01 | How it works: Agent → VisualKit engine → Renderer | `components/architecture` | `how-it-works` |
-| 02 | Benefits: batch edits, coded clips, lightweight | `components/benefits` | `benefits` |
+| 02 | Benefits: edit with code (all at once, in phases, in parallel), coded clips, lightweight, actors · proxies · workflows | `components/benefits` | `benefits` |
 | 03 | Three data states: Draft · Session · Store | `components/engine-states` | `engine` |
 | 04 | History: commit, checkpoint, branch, merge, undo, redo, rollback | `components/history` | `history` |
 | 05 | Renderer independence | `components/backends` | `backends` |
@@ -36,6 +36,8 @@ Each section folder owns its CSS file; `app/globals.css` holds only tokens, butt
 - GitHub links: `GITHUB_URL` in `lib/site.ts`. While it is `null` (the codebase isn't public yet), every GitHub link (docs header, "Edit this page on GitHub", the skill cards) opens a "we're open-sourcing soon" dialog. Set it to the repo URL (no trailing slash) and they all become real links. All of them go through `components/ui/GithubLink.tsx`; use that for any new GitHub link.
 - Library-release countdown (temporary, additive): everything lives in `components/countdown/` and the time is `LAUNCH_AT` in `lib/site.ts` (ISO, UTC). Until then the landing page shows the countdown in place of Get started, and the top banner shows "Almost done… Library coming soon" with a live chip linking to it. Afterwards the normal Get started section and the "Still in beta" banner appear on their own, with no redeploy, and Get started itself is never edited. To switch it off without deleting anything, set `LAUNCH_AT = null`. To delete it for good: (1) in `app/page.tsx` drop the `LaunchGate` import and wrapper so it renders `<Closing />`; (2) in `components/layout/TopBanner.tsx` drop the `LaunchBanner` import and wrapper, leaving the `top-banner-text` span; (3) delete `components/countdown/`; (4) delete `LAUNCH_AT` from `lib/site.ts`.
 - Demo video URL: `lib/site.ts` (`HERO_VIDEO`). Python / FFmpeg requirement line: `REQUIREMENTS` in the same file.
+- Benefits rows: `components/benefits/Benefits.tsx` (copy) with one infographic per row: `RunShapes.tsx` (row 01, client component with the run-shape tabs and the "Break one line" toggle), `CodedClips.tsx`, `LightFleet.tsx`, `ActorsFlow.tsx` (row 04, static markup animated by CSS). Their styles are in `benefits.css`.
+- Docs deep links from Benefits: anchors are made by `slugifyHeading` in `lib/markdown.ts` (parentheses and `&` are dropped, spaces collapse to one hyphen), so "Coded Visual Assets (HTML & Remotion)" is `#coded-visual-assets-html-remotion`. Re-check them if a docs heading is renamed. `components/docs/HashScroll.tsx` scrolls to the hash once the streamed doc content has mounted.
 - More-features grid: the `FEATURES` array in `more-features/MoreFeatures.tsx`. FAQ: the `FAQ` array in `faq/Faq.tsx` (also feeds the FAQPage JSON-LD).
 - Claimed-region scenarios: `claimed-region/claims.ts`. Run the check script after changing them.
 - 404 page: `app/not-found.tsx` renders `components/not-found/NotFoundPage.tsx`. The gap (17%–42%) and playhead (00:04:04 = 27.56%) are mirrored between the clip data in that file and `not-found.css` (`--p`, `.nf-gap`). `Logo` and `Footer` take an `href` / `home` prop so they point at `/` instead of `#top` off the landing page.

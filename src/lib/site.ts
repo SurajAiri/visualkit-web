@@ -40,5 +40,10 @@ export const SKILL_TARGETS = [
 export type SkillTargetKey = (typeof SKILL_TARGETS)[number]["key"];
 
 export function skillInstallCommand(dir: string): string {
-  return [`mkdir -p ${dir}`, `curl -fsSL ${SKILLS_BUNDLE_URL} -o vk-skills.zip`, `unzip -qo vk-skills.zip -d ${dir}`, "rm vk-skills.zip"].join("\n");
+  return [
+    `mkdir -p ${dir}`,
+    `curl -fsSL -o vk-skills.zip \\`,
+    `  ${SKILLS_BUNDLE_URL}`,
+    `unzip -qo vk-skills.zip -d ${dir} && rm vk-skills.zip`,
+  ].join("\n");
 }

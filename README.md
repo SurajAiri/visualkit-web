@@ -30,7 +30,7 @@ Each section folder owns its CSS file; `app/globals.css` holds only tokens, butt
 ## Where to edit things
 
 - Hero copy: `components/hero/Hero.tsx`. Hero timeline scenes and retiming: `components/hero/HeroScenes.tsx` (`STAGES`).
-- Get-started section (skills): per-agent skill folders, the bundle URL and the install command live in `lib/site.ts` (`SKILL_TARGETS`, `SKILLS_BUNDLE_URL`, `skillInstallCommand`). The typed prompt text is in `components/closing/TypedPrompt.tsx`.
+- Get-started section (skills): per-agent skill folders, the bundle URL and the install command live in `lib/site.ts` (`SKILL_TARGETS`, `SKILLS_BUNDLE_URL`, `skillInstallCommand`). The window (agent / code toggle, copy buttons, typed prompt and script) is `components/closing/GetStarted.tsx`; its styles are the `.gs-*` rules in `closing.css`.
 - Docs order and pages: `DOC_SECTIONS` in `lib/docs.ts` (Start Here, then AI Agents, then the rest). Markdown lives in `content/docs/`; `/docs/skills` is a hand-built page in `app/docs/skills/page.tsx`.
 - Agent Skills downloads: edit the plain files in `skills/<name>/` (`SKILL.md` plus optional `references/`). `scripts/build-skills.mjs` runs before `dev` and `build` and generates `public/downloads/skills/` (one zip per skill, `visualkit-skills-all.zip`, and a standalone `<name>-SKILL.md` each, so the download URLs stay stable). That folder is gitignored; never edit it. A new folder in `skills/` with a `SKILL.md` is picked up automatically, but add a card for it in `app/docs/skills/page.tsx`.
 - Demo video URL: `lib/site.ts` (`HERO_VIDEO`). Python / FFmpeg requirement line: `REQUIREMENTS` in the same file.
